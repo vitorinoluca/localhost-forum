@@ -1,8 +1,28 @@
+import { copyFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import react from '@vitejs/plugin-react';
 import historyApiFallback from 'connect-history-api-fallback';
 import type { Plugin } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
 import { seoPublicFilesPlugin } from './vite-plugins/seo-public-files';
+
+function copyIndexHtmlTo404(): Plugin {
+  let outDir = 'dist';
+  return {
+    name: 'spa-copy-index-to-404',
+    configResolved(config) {
+      outDir = config.build.outDir;
+    },
+    closeBundle() {
+      const root = join(process.cwd(), outDir);
+      const indexHtml = join(root, 'index.html');
+      const notFoundHtml = join(root, '404.html');
+      if (existsSync(indexHtml)) {
+        copyFileSync(indexHtml, notFoundHtml);
+      }
+    },
+  };
+}
 
 function spaHistoryFallback(): Plugin {
   const handler = historyApiFallback({
@@ -44,7 +64,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     appType: 'spa',
-    plugins: [seoPublicFilesPlugin(mode), spaHistoryFallback(), react()],
+    plugins: [
+      seoPublicFilesPlugin(mode),
+      spaHistoryFallback(),
+      copyIndexHtmlTo404(),
+      react(),
+    ],
     build: {
       sourcemap: mode !== 'production',
     },

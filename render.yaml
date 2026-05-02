@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: frontend
+    runtime: static
+    buildCommand: npm install && npm run build -w client
+    staticPublishPath: client/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

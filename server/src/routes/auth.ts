@@ -275,6 +275,12 @@ authRouter.post('/register', authLimiter, async (request, response) => {
 
   setPendingRegistrationCookie(response, user.id);
 
+  try {
+    await createAndSendVerificationCode(user.id, user.email);
+  } catch (error) {
+    console.error('[auth] verification email failed after register', error);
+  }
+
   response.status(201).json({
     message: 'Cuenta creada. Continua con la verificacion de email.',
     status: 'verification_required',
