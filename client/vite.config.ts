@@ -1,12 +1,48 @@
 import react from '@vitejs/plugin-react';
+import historyApiFallback from 'connect-history-api-fallback';
+import type { Plugin } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
+
+function spaHistoryFallback(): Plugin {
+  const handler = historyApiFallback({
+    disableDotRule: true,
+    verbose: false,
+  });
+
+  function skipHistory(url: string | undefined): boolean {
+    if (!url) return true;
+    const path = url.split('?')[0] ?? url;
+    if (path.startsWith('/api')) return true;
+    if (path.startsWith('/@')) return true;
+    if (path.startsWith('/node_modules')) return true;
+    return false;
+  }
+
+  return {
+    name: 'spa-history-fallback',
+    enforce: 'pre',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (skipHistory(req.url)) return next();
+        return handler(req, res, next);
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (skipHistory(req.url)) return next();
+        return handler(req, res, next);
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const apiTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:4000';
+  const apiTarget = env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:4000';
 
   return {
-    plugins: [react()],
+    appType: 'spa',
+    plugins: [spaHistoryFallback(), react()],
     build: {
       sourcemap: mode !== 'production',
     },
@@ -16,6 +52,19 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: apiTarget,
           changeOrigin: true,
+          timeout: 120000,
+          proxyTimeout: 120000,
+        },
+      },
+    },
+    preview: {
+      port: 4173,
+      proxy: {
+        '/api': {
+          target: apiTarget,
+          changeOrigin: true,
+          timeout: 120000,
+          proxyTimeout: 120000,
         },
       },
     },
