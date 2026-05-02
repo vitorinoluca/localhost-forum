@@ -28,7 +28,7 @@ function shouldRejectUnauthorized() {
     return env.DATABASE_SSL_REJECT_UNAUTHORIZED;
   }
 
-  return env.NODE_ENV === 'production';
+  return false;
 }
 
 const databaseConfig = parseDatabaseUrl();

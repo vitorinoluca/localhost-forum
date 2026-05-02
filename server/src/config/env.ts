@@ -3,10 +3,31 @@ import { z } from 'zod';
 
 dotenv.config();
 
+function parseEnvBoolean(value: unknown, fallback: boolean): boolean {
+  if (value === undefined || value === '') return fallback;
+  if (typeof value === 'boolean') return value;
+  const s = String(value).toLowerCase().trim();
+  if (['true', '1', 'yes', 'on'].includes(s)) return true;
+  if (['false', '0', 'no', 'off'].includes(s)) return false;
+  return fallback;
+}
+
+function parseOptionalEnvBoolean(value: unknown): boolean | undefined {
+  if (value === undefined || value === '') return undefined;
+  if (typeof value === 'boolean') return value;
+  const s = String(value).toLowerCase().trim();
+  if (['true', '1', 'yes', 'on'].includes(s)) return true;
+  if (['false', '0', 'no', 'off'].includes(s)) return false;
+  return undefined;
+}
+
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  DATABASE_SSL: z.coerce.boolean().default(false),
-  DATABASE_SSL_REJECT_UNAUTHORIZED: z.coerce.boolean().optional(),
+  DATABASE_SSL: z.preprocess((v) => parseEnvBoolean(v, false), z.boolean()),
+  DATABASE_SSL_REJECT_UNAUTHORIZED: z.preprocess(
+    (v) => parseOptionalEnvBoolean(v),
+    z.boolean().optional(),
+  ),
   PORT: z.coerce.number().int().positive().default(4000),
   LISTEN_HOST: z.string().optional(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(32).default(1),
@@ -19,8 +40,8 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().email().default('no-reply@my-app.local'),
-  AUTH_RETURN_DEV_CODE: z.coerce.boolean().default(false),
-  AUTH_LOG_DEV_CODE: z.coerce.boolean().default(false),
+  AUTH_RETURN_DEV_CODE: z.preprocess((v) => parseEnvBoolean(v, false), z.boolean()),
+  AUTH_LOG_DEV_CODE: z.preprocess((v) => parseEnvBoolean(v, false), z.boolean()),
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_STORAGE_BUCKET: z.string().min(1),
