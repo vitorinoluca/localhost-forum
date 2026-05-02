@@ -42,10 +42,6 @@ export function TermsPage({ navigate }: { navigate: (route: Route) => void }) {
 
   return (
     <LegalShell navigate={navigate} title='Términos del servicio'>
-      <p className='rounded-sm border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-xs text-amber-100/90'>
-        Información general. Para situaciones concretas consultá con un abogado.
-      </p>
-
       <section className='space-y-3'>
         <SectionTitle>1. Objeto</SectionTitle>
         <p>
@@ -180,11 +176,6 @@ export function PrivacyPage({ navigate }: { navigate: (route: Route) => void }) 
 
   return (
     <LegalShell navigate={navigate} title='Privacidad'>
-      <p className='rounded-sm border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-xs text-amber-100/90'>
-        Resumen del tratamiento de datos en este sitio. Actualizá el texto si ampliás servicios o
-        operás bajo otras normativas.
-      </p>
-
       <section className='space-y-3'>
         <SectionTitle>Responsable</SectionTitle>
         <p>
