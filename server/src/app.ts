@@ -7,6 +7,7 @@ import { env } from './config/env.js';
 import { checkDatabaseConnection } from './db/pool.js';
 import { banCheckMiddleware } from './middleware/ban-check.js';
 import { authRouter } from './routes/auth.js';
+import { buildAllowedOriginSet } from './utils/cors-origins.js';
 import { adminRouter } from './routes/admin.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { forumRouter } from './routes/forum.js';
@@ -18,13 +19,7 @@ export const app = express();
 
 app.disable('x-powered-by');
 
-const allowedOrigins = new Set([
-  env.CLIENT_ORIGIN,
-  ...(process.env.CLIENT_ORIGINS ?? '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean),
-]);
+const allowedOrigins = buildAllowedOriginSet(env.CLIENT_ORIGIN, process.env.CLIENT_ORIGINS);
 
 function isAllowedOrigin(origin: string) {
   if (allowedOrigins.has(origin)) {

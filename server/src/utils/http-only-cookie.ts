@@ -7,10 +7,12 @@ export function httpOnlyCookieAttributes(): {
   path: '/';
 } {
   const production = env.NODE_ENV === 'production';
+  const sameSite =
+    env.SESSION_COOKIE_SAME_SITE ?? (production ? 'none' : 'lax');
   return {
     httpOnly: true,
     secure: production,
-    sameSite: production ? 'none' : 'lax',
+    sameSite,
     path: '/',
   };
 }

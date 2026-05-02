@@ -30,6 +30,8 @@ const rawEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   SESSION_SECRET: z.string().min(32),
   SESSION_COOKIE_NAME: z.string().default('my_app_session'),
+  /** Override when API and web share the same registrable domain (e.g. www + api): use lax for better Safari/iOS behavior. */
+  SESSION_COOKIE_SAME_SITE: z.enum(['lax', 'none']).optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),
   SMTP_USER: z.string().optional(),
