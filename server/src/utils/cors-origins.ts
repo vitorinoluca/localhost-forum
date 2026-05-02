@@ -1,3 +1,13 @@
+/** Canonicaliza el Origin del navegador para comparar con la lista permitida. */
+export function normalizeBrowserOrigin(origin: string): string {
+  const trimmed = origin.trim();
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return trimmed;
+  }
+}
+
 export function expandOriginVariants(origin: string): string[] {
   let url: URL;
   try {
@@ -29,15 +39,18 @@ export function expandOriginVariants(origin: string): string[] {
 
 export function buildAllowedOriginSet(clientOrigin: string, extraOriginsRaw: string | undefined) {
   const set = new Set<string>();
+  const add = (o: string) => {
+    set.add(normalizeBrowserOrigin(o));
+  };
   for (const expanded of expandOriginVariants(clientOrigin)) {
-    set.add(expanded);
+    add(expanded);
   }
   for (const part of (extraOriginsRaw ?? '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)) {
     for (const expanded of expandOriginVariants(part)) {
-      set.add(expanded);
+      add(expanded);
     }
   }
   return set;

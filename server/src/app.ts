@@ -7,13 +7,17 @@ import { env } from './config/env.js';
 import { checkDatabaseConnection } from './db/pool.js';
 import { banCheckMiddleware } from './middleware/ban-check.js';
 import { authRouter } from './routes/auth.js';
-import { buildAllowedOriginSet } from './utils/cors-origins.js';
+import {
+  buildAllowedOriginSet,
+  normalizeBrowserOrigin,
+} from './utils/cors-origins.js';
 import { adminRouter } from './routes/admin.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { forumRouter } from './routes/forum.js';
 import { inboxRouter } from './routes/inbox.js';
 import { notificationsRouter } from './routes/notifications.js';
 import { usersRouter } from './routes/users.js';
+import { attachClientSpaIfPresent } from './serve-client.js';
 
 export const app = express();
 
@@ -21,13 +25,30 @@ app.disable('x-powered-by');
 
 const allowedOrigins = buildAllowedOriginSet(env.CLIENT_ORIGIN, process.env.CLIENT_ORIGINS);
 
+const originRegexRaw = env.CLIENT_ORIGIN_REGEX?.trim();
+let originRegex: RegExp | null = null;
+if (originRegexRaw) {
+  try {
+    originRegex = new RegExp(originRegexRaw);
+  } catch {
+    throw new Error(
+      `CLIENT_ORIGIN_REGEX no es una expresion regular valida: ${originRegexRaw}`,
+    );
+  }
+}
+
 function isAllowedOrigin(origin: string) {
-  if (allowedOrigins.has(origin)) {
+  const normalized = normalizeBrowserOrigin(origin);
+  if (allowedOrigins.has(normalized)) {
+    return true;
+  }
+
+  if (originRegex?.test(normalized) || originRegex?.test(origin.trim())) {
     return true;
   }
 
   if (env.NODE_ENV !== 'production') {
-    return /^http:\/\/(localhost|127\.0\.0\.1):517\d$/.test(origin);
+    return /^http:\/\/(localhost|127\.0\.0\.1):517\d$/.test(normalized);
   }
 
   return false;
@@ -35,10 +56,16 @@ function isAllowedOrigin(origin: string) {
 
 const corsOptions: cors.CorsOptions = {
   credentials: true,
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   origin(origin, callback) {
     if (!origin || isAllowedOrigin(origin)) {
       callback(null, true);
       return;
+    }
+
+    if (process.env.CORS_LOG_REJECTS === 'true' || env.NODE_ENV !== 'production') {
+      console.warn(`[cors] Origin rechazado: ${origin}`);
     }
 
     callback(null, false);
@@ -89,6 +116,8 @@ app.get('/api/health', async (_request, response) => {
     });
   }
 });
+
+attachClientSpaIfPresent(app, { explicitDistPath: env.CLIENT_DIST_PATH });
 
 const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
   void _next;

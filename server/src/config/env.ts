@@ -27,6 +27,8 @@ const rawEnvSchema = z.object({
   LISTEN_HOST: z.string().optional(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(32).default(1),
   CLIENT_ORIGIN: z.string().url().default('http://localhost:5174'),
+  /** Opcional: regex (sin barras /) para previews u otros dominios, ej. ^https://.*\\.onrender\\.com$ */
+  CLIENT_ORIGIN_REGEX: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   SESSION_SECRET: z.string().min(32),
   SESSION_COOKIE_NAME: z.string().default('my_app_session'),
@@ -42,6 +44,8 @@ const rawEnvSchema = z.object({
   SUPABASE_STORAGE_BUCKET: z.string().min(1),
   SUPERADMIN_EMAILS: z.string().optional(),
   ANALYTICS_IP_DEDUPE_HOURS: z.coerce.number().int().min(0).max(24 * 365).default(24),
+  /** Ruta absoluta a client/dist si no esta al lado del server en el monorepo. */
+  CLIENT_DIST_PATH: z.string().optional(),
 });
 
 function parseGoogleClientId(): string | undefined {

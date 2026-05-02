@@ -14,6 +14,11 @@ export async function banCheckMiddleware(
   next: NextFunction,
 ): Promise<void> {
   try {
+    if (request.method === 'OPTIONS') {
+      next();
+      return;
+    }
+
     const path =
       (request.originalUrl?.split('?')[0] ?? `${request.baseUrl ?? ''}${request.path ?? ''}`) || '/';
     if (isExemptApiPath(path)) {
