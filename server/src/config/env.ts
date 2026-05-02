@@ -21,13 +21,8 @@ function parseOptionalEnvBoolean(value: unknown): boolean | undefined {
   return undefined;
 }
 
-const envSchema = z.object({
+const rawEnvSchema = z.object({
   DATABASE_URL: z.string().url(),
-  DATABASE_SSL: z.preprocess((v) => parseEnvBoolean(v, false), z.boolean()),
-  DATABASE_SSL_REJECT_UNAUTHORIZED: z.preprocess(
-    (v) => parseOptionalEnvBoolean(v),
-    z.boolean().optional(),
-  ),
   PORT: z.coerce.number().int().positive().default(4000),
   LISTEN_HOST: z.string().optional(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(32).default(1),
@@ -40,17 +35,24 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().email().default('no-reply@my-app.local'),
-  AUTH_RETURN_DEV_CODE: z.preprocess((v) => parseEnvBoolean(v, false), z.boolean()),
-  AUTH_LOG_DEV_CODE: z.preprocess((v) => parseEnvBoolean(v, false), z.boolean()),
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_STORAGE_BUCKET: z.string().min(1),
-  GOOGLE_CLIENT_ID: z.preprocess((val) => {
-    if (typeof val !== 'string') return undefined;
-    const trimmed = val.trim();
-    return trimmed === '' ? undefined : trimmed;
-  }, z.string().min(1).optional()),
   SUPERADMIN_EMAILS: z.string().optional(),
 });
 
-export const env = envSchema.parse(process.env);
+function parseGoogleClientId(): string | undefined {
+  const value = process.env.GOOGLE_CLIENT_ID?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
+
+const raw = rawEnvSchema.parse(process.env);
+
+export const env = {
+  ...raw,
+  DATABASE_SSL: parseEnvBoolean(process.env.DATABASE_SSL, false),
+  DATABASE_SSL_REJECT_UNAUTHORIZED: parseOptionalEnvBoolean(process.env.DATABASE_SSL_REJECT_UNAUTHORIZED),
+  AUTH_RETURN_DEV_CODE: parseEnvBoolean(process.env.AUTH_RETURN_DEV_CODE, false),
+  AUTH_LOG_DEV_CODE: parseEnvBoolean(process.env.AUTH_LOG_DEV_CODE, false),
+  GOOGLE_CLIENT_ID: parseGoogleClientId(),
+};
