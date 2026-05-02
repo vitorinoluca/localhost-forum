@@ -1,5 +1,6 @@
 import { app } from './app.js';
 import { env } from './config/env.js';
+import { runMigrations } from './db/migrate.js';
 import { promoteSuperadminEmails } from './services/superadmin-bootstrap.js';
 
 const configuredHost = env.LISTEN_HOST?.trim();
@@ -11,6 +12,7 @@ const host =
       : '127.0.0.1';
 
 async function main() {
+  await runMigrations();
   await promoteSuperadminEmails();
 
   app.listen(env.PORT, host, () => {

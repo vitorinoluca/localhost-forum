@@ -1,12 +1,22 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { pool } from './pool.js';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(currentDir, '../../migrations');
 
-async function migrate() {
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return import.meta.url === pathToFileURL(path.resolve(entry)).href;
+  } catch {
+    return false;
+  }
+}
+
+export async function runMigrations(): Promise<void> {
   await pool.query(`
     create table if not exists schema_migrations (
       name text primary key,
@@ -40,12 +50,14 @@ async function migrate() {
   }
 }
 
-migrate()
-  .then(async () => {
-    await pool.end();
-  })
-  .catch(async (error: unknown) => {
-    console.error(error);
-    await pool.end();
-    process.exit(1);
-  });
+if (isMainModule()) {
+  runMigrations()
+    .then(async () => {
+      await pool.end();
+    })
+    .catch(async (error: unknown) => {
+      console.error(error);
+      await pool.end();
+      process.exit(1);
+    });
+}
