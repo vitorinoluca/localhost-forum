@@ -10,59 +10,14 @@ const adminRouter = Router();
 adminRouter.use(requireAuth, requireSuperadmin);
 
 adminRouter.get('/stats', async (_request, response) => {
-  const [users, posts, visits24, visits7d, topCountries, recent] = await Promise.all([
+  const [users, posts] = await Promise.all([
     pool.query<{ c: number }>(`select count(*)::int as c from users`),
     pool.query<{ c: number }>(`select count(*)::int as c from forum_posts`),
-    pool.query<{ c: number }>(
-      `select count(*)::int as c from analytics_visits where created_at > now() - interval '24 hours'`,
-    ),
-    pool.query<{ c: number }>(
-      `select count(*)::int as c from analytics_visits where created_at > now() - interval '7 days'`,
-    ),
-    pool.query<{ country_code: string; n: number }>(
-      `
-        select country_code, count(*)::int as n
-        from analytics_visits
-        where created_at > now() - interval '30 days' and country_code is not null
-        group by country_code
-        order by count(*) desc
-        limit 15
-      `,
-    ),
-    pool.query<{
-      path: string;
-      country_code: string | null;
-      region: string | null;
-      city: string | null;
-      created_at: Date;
-      user_id: string | null;
-    }>(
-      `
-        select path, country_code, region, city, created_at, user_id
-        from analytics_visits
-        order by created_at desc
-        limit 40
-      `,
-    ),
   ]);
 
   response.json({
     usersTotal: users.rows[0]?.c ?? 0,
     postsTotal: posts.rows[0]?.c ?? 0,
-    visitsLast24h: visits24.rows[0]?.c ?? 0,
-    visitsLast7d: visits7d.rows[0]?.c ?? 0,
-    topCountries: topCountries.rows.map((r) => ({
-      country: r.country_code,
-      count: r.n,
-    })),
-    recentVisits: recent.rows.map((r) => ({
-      path: r.path,
-      countryCode: r.country_code,
-      region: r.region,
-      city: r.city,
-      createdAt: r.created_at.toISOString(),
-      userId: r.user_id,
-    })),
   });
 });
 
@@ -130,56 +85,6 @@ adminRouter.post('/users/:userId/unban', async (request, response) => {
     [idParse.data],
   );
   response.json({ message: 'Suspension levantada.' });
-});
-
-const ipBanSchema = z.object({
-  cidr: z.string().trim().min(3).max(64),
-  reason: z.string().trim().max(500).optional(),
-});
-
-adminRouter.get('/ip-bans', async (_request, response) => {
-  const r = await pool.query(
-    `
-      select b.id, b.cidr::text as cidr, b.reason, b.created_at, u.email as created_by_email
-      from ip_bans b
-      left join users u on u.id = b.created_by
-      order by b.created_at desc
-    `,
-  );
-  response.json({ ipBans: r.rows });
-});
-
-adminRouter.post('/ip-bans', async (request: AuthenticatedRequest, response) => {
-  const parsed = ipBanSchema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ message: 'Datos invalidos.' });
-    return;
-  }
-  try {
-    const ins = await pool.query<{ id: string; cidr: string }>(
-      `
-        insert into ip_bans (cidr, reason, created_by)
-        values ($1::cidr, $2, $3)
-        returning id, cidr::text as cidr
-      `,
-      [parsed.data.cidr, parsed.data.reason ?? null, request.auth?.user.id ?? null],
-    );
-    response.status(201).json({ message: 'Rango bloqueado.', ban: ins.rows[0] });
-  } catch {
-    response.status(400).json({
-      message: 'No se pudo guardar (usa CIDR valido, ej. 192.0.2.10/32 o 192.0.2.0/24).',
-    });
-  }
-});
-
-adminRouter.delete('/ip-bans/:banId', async (request, response) => {
-  const idParse = z.string().uuid().safeParse(request.params.banId);
-  if (!idParse.success) {
-    response.status(400).json({ message: 'ID invalido.' });
-    return;
-  }
-  await pool.query(`delete from ip_bans where id = $1`, [idParse.data]);
-  response.json({ message: 'Bloqueo eliminado.' });
 });
 
 adminRouter.get('/posts/recent', async (request, response) => {

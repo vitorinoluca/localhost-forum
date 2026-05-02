@@ -6,17 +6,6 @@ import { Spinner } from '../common/Spinner';
 type AdminStats = {
   usersTotal: number;
   postsTotal: number;
-  visitsLast24h: number;
-  visitsLast7d: number;
-  topCountries: { country: string; count: number }[];
-  recentVisits: Array<{
-    path: string;
-    countryCode: string | null;
-    region: string | null;
-    city: string | null;
-    createdAt: string;
-    userId: string | null;
-  }>;
 };
 
 type AdminUserRow = {
@@ -29,14 +18,6 @@ type AdminUserRow = {
   created_at: string;
 };
 
-type IpBanRow = {
-  id: string;
-  cidr: string;
-  reason: string | null;
-  created_at: string;
-  created_by_email: string | null;
-};
-
 type RecentPostRow = {
   id: string;
   title: string;
@@ -46,17 +27,6 @@ type RecentPostRow = {
   author_email: string;
 };
 
-const countryNameEs = new Intl.DisplayNames(['es'], { type: 'region' });
-
-function formatCountry(code: string | null) {
-  if (!code || code.length !== 2) return '—';
-  try {
-    return countryNameEs.of(code.toUpperCase()) ?? code;
-  } catch {
-    return code;
-  }
-}
-
 export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => void }) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -65,9 +35,6 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [banReason, setBanReason] = useState('');
-  const [ipCidr, setIpCidr] = useState('');
-  const [ipReason, setIpReason] = useState('');
-  const [ipBans, setIpBans] = useState<IpBanRow[]>([]);
   const [posts, setPosts] = useState<RecentPostRow[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const usersFirstLoad = useRef(true);
@@ -82,15 +49,6 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
       setMessage(e instanceof ApiError ? e.message : 'No se pudieron cargar las estadísticas.');
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  const loadIpBans = useCallback(async () => {
-    try {
-      const data = await apiRequest<{ ipBans: IpBanRow[] }>('/api/admin/ip-bans');
-      setIpBans(data.ipBans);
-    } catch (e) {
-      setMessage(e instanceof ApiError ? e.message : 'No se pudieron cargar los bloqueos IP.');
     }
   }, []);
 
@@ -109,11 +67,10 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
   useEffect(() => {
     const id = window.setTimeout(() => {
       void loadStats();
-      void loadIpBans();
       void loadPosts();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [loadIpBans, loadPosts, loadStats]);
+  }, [loadPosts, loadStats]);
 
   const refreshUsersList = useCallback(async () => {
     setUsersLoading(true);
@@ -184,35 +141,6 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
     }
   }
 
-  async function addIpBan() {
-    setMessage('');
-    try {
-      await apiRequest('/api/admin/ip-bans', {
-        method: 'POST',
-        body: JSON.stringify({
-          cidr: ipCidr.trim(),
-          reason: ipReason.trim() || undefined,
-        }),
-      });
-      setIpCidr('');
-      setIpReason('');
-      await loadIpBans();
-    } catch (e) {
-      setMessage(e instanceof ApiError ? e.message : 'No se pudo crear el bloqueo.');
-    }
-  }
-
-  async function removeIpBan(id: string) {
-    if (!window.confirm('¿Eliminar este bloqueo de IP?')) return;
-    setMessage('');
-    try {
-      await apiRequest(`/api/admin/ip-bans/${id}`, { method: 'DELETE' });
-      await loadIpBans();
-    } catch (e) {
-      setMessage(e instanceof ApiError ? e.message : 'No se pudo eliminar el bloqueo.');
-    }
-  }
-
   async function deletePost(postId: string) {
     if (!window.confirm('¿Eliminar esta publicación de forma permanente?')) return;
     setMessage('');
@@ -236,7 +164,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
             Panel de control
           </h1>
           <p className='mt-2 max-w-xl text-xs text-neutral-500'>
-            Métricas de visitas (GeoIP local), usuarios, bloqueos por IP y moderación de contenido.
+            Usuarios y moderación de contenido.
           </p>
         </div>
         <div className='flex flex-wrap gap-2'>
@@ -246,7 +174,6 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
             onClick={() => {
               void loadStats();
               void refreshUsersList();
-              void loadIpBans();
               void loadPosts();
             }}
           >
@@ -270,10 +197,10 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
 
       {loading ? (
         <div className='flex min-h-[180px] items-center justify-center py-12'>
-          <Spinner label='Cargando métricas' size='lg' />
+          <Spinner label='Cargando estadísticas' size='lg' />
         </div>
       ) : stats ? (
-        <section className='mb-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        <section className='mb-12 grid gap-4 sm:grid-cols-2'>
           <div className='rounded-sm border border-white/10 bg-[#0f0f12] p-5'>
             <p className='text-[9px] font-bold uppercase tracking-widest text-neutral-600'>
               Usuarios
@@ -286,100 +213,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
             </p>
             <p className='mt-2 font-["Outfit"] text-3xl font-bold text-white'>{stats.postsTotal}</p>
           </div>
-          <div className='rounded-sm border border-white/10 bg-[#0f0f12] p-5'>
-            <p className='text-[9px] font-bold uppercase tracking-widest text-neutral-600'>
-              Visitas (24 h)
-            </p>
-            <p className='mt-2 font-["Outfit"] text-3xl font-bold text-white'>
-              {stats.visitsLast24h}
-            </p>
-          </div>
-          <div className='rounded-sm border border-white/10 bg-[#0f0f12] p-5'>
-            <p className='text-[9px] font-bold uppercase tracking-widest text-neutral-600'>
-              Visitas (7 días)
-            </p>
-            <p className='mt-2 font-["Outfit"] text-3xl font-bold text-white'>{stats.visitsLast7d}</p>
-          </div>
         </section>
-      ) : null}
-
-      {stats ? (
-        <div className='mb-12 grid gap-10 lg:grid-cols-2'>
-          <section>
-            <h2 className='mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400'>
-              Países (30 días, top 15)
-            </h2>
-            <div className='overflow-hidden rounded-sm border border-white/10'>
-              <table className='w-full text-left text-xs'>
-                <thead className='border-b border-white/10 bg-black/40 text-[9px] font-bold uppercase tracking-widest text-neutral-500'>
-                  <tr>
-                    <th className='px-4 py-3'>País</th>
-                    <th className='px-4 py-3 text-right'>Visitas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.topCountries.length === 0 ? (
-                    <tr>
-                      <td className='px-4 py-6 text-neutral-500' colSpan={2}>
-                        Aún no hay datos de país (necesitás tráfico con IPs públicas).
-                      </td>
-                    </tr>
-                  ) : (
-                    stats.topCountries.map((row) => (
-                      <tr key={row.country} className='border-b border-white/5'>
-                        <td className='px-4 py-2.5 text-neutral-200'>
-                          {formatCountry(row.country)}
-                          <span className='ml-2 text-[10px] text-neutral-600'>({row.country})</span>
-                        </td>
-                        <td className='px-4 py-2.5 text-right tabular-nums text-neutral-300'>
-                          {row.count}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section>
-            <h2 className='mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400'>
-              Visitas recientes
-            </h2>
-            <div className='max-h-[320px] overflow-auto rounded-sm border border-white/10'>
-              <table className='w-full text-left text-[11px]'>
-                <thead className='sticky top-0 border-b border-white/10 bg-black/90 text-[9px] font-bold uppercase tracking-widest text-neutral-500'>
-                  <tr>
-                    <th className='px-3 py-2'>Cuándo</th>
-                    <th className='px-3 py-2'>Ubicación</th>
-                    <th className='px-3 py-2'>Ruta</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.recentVisits.map((v, idx) => (
-                    <tr key={`${v.createdAt}-${v.path}-${idx}`} className='border-b border-white/5'>
-                      <td className='whitespace-nowrap px-3 py-2 text-neutral-400'>
-                        {new Date(v.createdAt).toLocaleString('es-AR', {
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className='px-3 py-2 text-neutral-300'>
-                        {[formatCountry(v.countryCode), v.region, v.city].filter(Boolean).join(' · ') ||
-                          '—'}
-                      </td>
-                      <td className='max-w-[180px] truncate px-3 py-2 font-mono text-[10px] text-neutral-500'>
-                        {v.path}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
       ) : null}
 
       <section className='mb-12'>
@@ -470,78 +304,6 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
                     </tr>
                   );
                 })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className='mb-12'>
-        <h2 className='mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400'>
-          Bloqueos por IP (CIDR)
-        </h2>
-        <div className='mb-4 flex flex-wrap gap-3'>
-          <input
-            className='min-w-[200px] flex-1 border border-white/10 bg-black/50 px-3 py-2 font-mono text-xs text-white outline-none placeholder:text-neutral-600 focus:border-[#3b82f6]/50'
-            onChange={(e) => setIpCidr(e.target.value)}
-            placeholder='Ej. 203.0.113.50/32 o 203.0.113.0/24'
-            type='text'
-            value={ipCidr}
-          />
-          <input
-            className='min-w-[160px] flex-1 border border-white/10 bg-black/50 px-3 py-2 text-xs text-white outline-none placeholder:text-neutral-600 focus:border-[#3b82f6]/50'
-            onChange={(e) => setIpReason(e.target.value)}
-            placeholder='Motivo (opcional)'
-            type='text'
-            value={ipReason}
-          />
-          <button
-            className='border border-[#3b82f6]/40 bg-[#3b82f6]/15 px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-[#93c5fd] transition hover:bg-[#3b82f6]/25'
-            type='button'
-            onClick={() => void addIpBan()}
-          >
-            Añadir bloqueo
-          </button>
-        </div>
-        <div className='overflow-x-auto rounded-sm border border-white/10'>
-          <table className='w-full text-left text-xs'>
-            <thead className='border-b border-white/10 bg-black/40 text-[9px] font-bold uppercase tracking-widest text-neutral-500'>
-              <tr>
-                <th className='px-4 py-3'>CIDR</th>
-                <th className='px-4 py-3'>Motivo</th>
-                <th className='px-4 py-3'>Creado</th>
-                <th className='px-4 py-3 text-right'>Quitar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ipBans.length === 0 ? (
-                <tr>
-                  <td className='px-4 py-6 text-neutral-500' colSpan={4}>
-                    No hay rangos bloqueados.
-                  </td>
-                </tr>
-              ) : (
-                ipBans.map((b) => (
-                  <tr key={b.id} className='border-b border-white/5'>
-                    <td className='px-4 py-3 font-mono text-neutral-200'>{b.cidr}</td>
-                    <td className='px-4 py-3 text-neutral-500'>{b.reason ?? '—'}</td>
-                    <td className='px-4 py-3 text-neutral-600'>
-                      {new Date(b.created_at).toLocaleString('es-AR')}
-                      {b.created_by_email ? (
-                        <span className='ml-2 text-[10px]'>por {b.created_by_email}</span>
-                      ) : null}
-                    </td>
-                    <td className='px-4 py-3 text-right'>
-                      <button
-                        className='text-[10px] font-bold uppercase tracking-widest text-neutral-500 transition hover:text-red-400'
-                        type='button'
-                        onClick={() => void removeIpBan(b.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))
               )}
             </tbody>
           </table>

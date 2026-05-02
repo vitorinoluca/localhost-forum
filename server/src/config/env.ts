@@ -43,7 +43,6 @@ const rawEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_STORAGE_BUCKET: z.string().min(1),
   SUPERADMIN_EMAILS: z.string().optional(),
-  ANALYTICS_IP_DEDUPE_HOURS: z.coerce.number().int().min(0).max(24 * 365).default(24),
   /** Ruta absoluta a client/dist si no esta al lado del server en el monorepo. */
   CLIENT_DIST_PATH: z.string().optional(),
 });

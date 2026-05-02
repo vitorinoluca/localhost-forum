@@ -9,12 +9,10 @@ const sessionDurationMs = 1000 * 60 * 60 * 24 * 7;
 export async function createSession({
   userId,
   userAgent,
-  ip,
   response,
 }: {
   userId: string;
   userAgent?: string;
-  ip?: string;
   response: Response;
 }) {
   const token = createSessionToken();
@@ -24,9 +22,9 @@ export async function createSession({
   await pool.query(
     `
       insert into user_sessions (user_id, token_hash, user_agent, ip_address, expires_at)
-      values ($1, $2, $3, nullif($4, '')::inet, $5)
+      values ($1, $2, $3, null, $4)
     `,
-    [userId, tokenHash, userAgent ?? null, ip ?? '', expiresAt],
+    [userId, tokenHash, userAgent ?? null, expiresAt],
   );
 
   response.cookie(env.SESSION_COOKIE_NAME, token, {

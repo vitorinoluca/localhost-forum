@@ -83,8 +83,6 @@ async function wipeStorageBucket(): Promise<number> {
 async function wipeDatabase(): Promise<void> {
   await pool.query(`
     truncate table
-      analytics_visits,
-      ip_bans,
       notifications,
       forum_post_comments,
       forum_post_reactions,

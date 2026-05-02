@@ -24,6 +24,11 @@ export function buildRobotsTxt(mode: string): string {
   return lines.join('\n');
 }
 
+/**
+ * Solo URLs públicas (SEO). Debe coincidir con server/src/routes/sitemap.ts STATIC_ENTRIES.
+ * Excluye: /login, /register, /verify-email, /profile/edit, /admin, /notifications
+ * y rutas dinámicas /posts/:id, /users/:id (esas las agrega el servidor en /sitemap.xml si usás API+SPA).
+ */
 const SITEMAP_PATHS: { path: string; priority: string; changefreq: string }[] = [
   { path: '/', priority: '1.0', changefreq: 'daily' },
   { path: '/terms', priority: '0.5', changefreq: 'monthly' },

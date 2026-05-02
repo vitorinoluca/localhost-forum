@@ -373,7 +373,6 @@ authRouter.post('/verify-email', authLimiter, async (request: AuthenticatedReque
   await createSession({
     userId: user.id,
     userAgent: request.get('user-agent'),
-    ip: request.ip,
     response,
   });
 
@@ -472,7 +471,6 @@ authRouter.post('/login', loginLimiter, async (request, response) => {
   await createSession({
     userId: user.id,
     userAgent: request.get('user-agent'),
-    ip: request.ip,
     response,
   });
 
@@ -525,7 +523,6 @@ authRouter.post('/google', loginLimiter, async (request, response) => {
     await createSession({
       userId: user.id,
       userAgent: request.get('user-agent'),
-      ip: request.ip,
       response,
     });
 

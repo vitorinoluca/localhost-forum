@@ -274,23 +274,6 @@ export function useAppController() {
     }
   }, [checkingSession, route, user, navigate]);
 
-  useEffect(() => {
-    if (checkingSession) return;
-    queueMicrotask(() => {
-      void trackedApiRequest(
-        '/api/analytics/beacon',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            path: window.location.pathname + window.location.search,
-            referrer: document.referrer || undefined,
-          }),
-        },
-        { trackLoading: false },
-      );
-    });
-  }, [checkingSession, route, trackedApiRequest]);
-
   const handleGoogleCredential = useCallback(
     async (credential: string) => {
       clearAuthFieldFeedback();
