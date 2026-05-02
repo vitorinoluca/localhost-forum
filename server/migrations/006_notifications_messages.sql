@@ -1,4 +1,3 @@
--- Notificaciones in-app (ej. comentario en tu publicacion)
 create table if not exists notifications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references users(id) on delete cascade,

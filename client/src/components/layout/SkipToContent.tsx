@@ -1,6 +1,3 @@
-/**
- * Enlace al contenido principal: mejora accesibilidad (teclado / lectores de pantalla) y buenas prácticas WCAG.
- */
 export function SkipToContent() {
   return (
     <a

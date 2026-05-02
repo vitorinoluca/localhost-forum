@@ -1,4 +1,3 @@
--- OAuth (Google): nullable password for Google-only accounts; stable Google subject id.
 alter table users alter column password_hash drop not null;
 
 alter table users add column if not exists google_sub text;

@@ -1,3 +1,5 @@
+import { DEFAULT_SITE_KEYWORDS } from './seo-keywords';
+
 const siteName = import.meta.env.VITE_SITE_NAME?.trim() || 'localhost:forum';
 const defaultDescription =
   import.meta.env.VITE_SITE_DESCRIPTION?.trim() ||
@@ -12,6 +14,18 @@ const themeColor = import.meta.env.VITE_THEME_COLOR?.trim() || '#0a0a0a';
 const twitterSite = (import.meta.env.VITE_TWITTER_SITE || '').trim().replace(/^@/, '');
 const twitterCreator = (import.meta.env.VITE_TWITTER_CREATOR || '').trim().replace(/^@/, '');
 const siteAuthor = (import.meta.env.VITE_SITE_AUTHOR || '').trim();
+
+function resolvedKeywords(): string {
+  const raw = import.meta.env.VITE_SITE_KEYWORDS?.trim();
+  if (raw && raw.length > 0) {
+    return raw
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+      .join(', ');
+  }
+  return DEFAULT_SITE_KEYWORDS;
+}
 
 export {
   siteName,
@@ -38,6 +52,10 @@ function upsertMetaName(name: string, content: string) {
     document.head.appendChild(el);
   }
   el.setAttribute('content', content);
+}
+
+function removeMetaName(name: string) {
+  document.head.querySelector(`meta[name="${name}"]`)?.remove();
 }
 
 function upsertMetaProperty(property: string, content: string) {
@@ -106,8 +124,10 @@ export function applyDocumentSeo(input: DocumentSeoInput) {
       'googlebot',
       'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
     );
+    upsertMetaName('keywords', resolvedKeywords());
   } else {
     upsertMetaName('googlebot', 'noindex, nofollow');
+    removeMetaName('keywords');
   }
 
   if (siteAuthor) {
