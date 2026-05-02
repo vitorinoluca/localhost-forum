@@ -24,6 +24,12 @@ app.disable('x-powered-by');
 
 const allowedOrigins = buildAllowedOriginSet(env.CLIENT_ORIGIN, process.env.CLIENT_ORIGINS);
 
+if (env.NODE_ENV === 'production') {
+  console.info(
+    `[cors] Origenes permitidos (${allowedOrigins.size}): ${[...allowedOrigins].join(', ')}`,
+  );
+}
+
 const originRegexRaw = env.CLIENT_ORIGIN_REGEX?.trim();
 let originRegex: RegExp | null = null;
 if (originRegexRaw) {

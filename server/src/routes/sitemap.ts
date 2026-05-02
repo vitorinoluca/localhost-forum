@@ -1,17 +1,10 @@
 import { Router } from 'express';
 import { env } from '../config/env.js';
 import { pool } from '../db/pool.js';
-
-/**
- * Rutas públicas indexables (alineadas con client/src/lib/route.ts).
- * No incluye login, registro, admin, etc.
- */
-const STATIC_ENTRIES: { path: string; priority: string; changefreq: string }[] = [
-  { path: '/', priority: '1.0', changefreq: 'daily' },
-  { path: '/terms', priority: '0.5', changefreq: 'monthly' },
-  { path: '/privacy', priority: '0.5', changefreq: 'monthly' },
-  { path: '/contact', priority: '0.6', changefreq: 'monthly' },
-];
+import {
+  isBlockedSitemapPathname,
+  SITEMAP_STATIC_ENTRIES,
+} from '../utils/sitemap-constants.js';
 
 function xmlEscape(s: string): string {
   return s
@@ -59,7 +52,8 @@ sitemapRouter.get('/sitemap.xml', async (_request, response) => {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
   ];
 
-  for (const { path: p, priority, changefreq } of STATIC_ENTRIES) {
+  for (const { path: p, priority, changefreq } of SITEMAP_STATIC_ENTRIES) {
+    if (isBlockedSitemapPathname(p)) continue;
     const loc = p === '/' ? `${base}/` : `${base}${p}`;
     lines.push('  <url>');
     lines.push(`    <loc>${xmlEscape(loc)}</loc>`);
@@ -70,6 +64,11 @@ sitemapRouter.get('/sitemap.xml', async (_request, response) => {
 
   for (const row of postRows) {
     const loc = `${base}/posts/${row.id}`;
+    try {
+      if (isBlockedSitemapPathname(new URL(loc).pathname)) continue;
+    } catch {
+      continue;
+    }
     lines.push('  <url>');
     lines.push(`    <loc>${xmlEscape(loc)}</loc>`);
     lines.push(`    <lastmod>${formatLastmod(row.updated_at)}</lastmod>`);
@@ -80,6 +79,11 @@ sitemapRouter.get('/sitemap.xml', async (_request, response) => {
 
   for (const row of userRows) {
     const loc = `${base}/users/${row.id}`;
+    try {
+      if (isBlockedSitemapPathname(new URL(loc).pathname)) continue;
+    } catch {
+      continue;
+    }
     lines.push('  <url>');
     lines.push(`    <loc>${xmlEscape(loc)}</loc>`);
     lines.push(`    <lastmod>${formatLastmod(row.updated_at)}</lastmod>`);

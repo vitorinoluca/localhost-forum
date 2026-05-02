@@ -2,6 +2,10 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Plugin, ResolvedConfig } from 'vite';
 import { loadEnv } from 'vite';
+import {
+  ROBOTS_DISALLOW_PATHS,
+  SITEMAP_STATIC_ENTRIES,
+} from './sitemap-constants';
 
 function trimEnv(mode: string, key: string): string {
   const all = loadEnv(mode, process.cwd(), 'VITE_');
@@ -17,31 +21,23 @@ export function buildAdsTxt(mode: string): string | null {
 
 export function buildRobotsTxt(mode: string): string {
   const base = trimEnv(mode, 'VITE_SITE_URL').replace(/\/$/, '');
-  const lines = ['User-agent: *', 'Allow: /', ''];
+  const lines = ['User-agent: *', 'Allow: /'];
+  for (const path of ROBOTS_DISALLOW_PATHS) {
+    lines.push(`Disallow: ${path}`);
+  }
+  lines.push('');
   if (base) {
     lines.push(`Sitemap: ${base}/sitemap.xml`, '');
   }
   return lines.join('\n');
 }
 
-/**
- * Solo URLs públicas (SEO). Debe coincidir con server/src/routes/sitemap.ts STATIC_ENTRIES.
- * Excluye: /login, /register, /verify-email, /profile/edit, /admin, /notifications
- * y rutas dinámicas /posts/:id, /users/:id (esas las agrega el servidor en /sitemap.xml si usás API+SPA).
- */
-const SITEMAP_PATHS: { path: string; priority: string; changefreq: string }[] = [
-  { path: '/', priority: '1.0', changefreq: 'daily' },
-  { path: '/terms', priority: '0.5', changefreq: 'monthly' },
-  { path: '/privacy', priority: '0.5', changefreq: 'monthly' },
-  { path: '/contact', priority: '0.6', changefreq: 'monthly' },
-];
-
 export function buildSitemapXml(mode: string): string {
   const base = trimEnv(mode, 'VITE_SITE_URL').replace(/\/$/, '');
   if (!base) {
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>\n`;
   }
-  const urls = SITEMAP_PATHS.map(
+  const urls = SITEMAP_STATIC_ENTRIES.map(
     ({ path, priority, changefreq }) =>
       `  <url>\n    <loc>${base}${path === '/' ? '/' : path}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`,
   ).join('\n');
