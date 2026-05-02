@@ -5,7 +5,6 @@ const roots = new Set<string>([
   '/login',
   '/register',
   '/verify-email',
-  '/app',
   '/profile/edit',
   '/admin',
   '/notifications',
@@ -23,7 +22,8 @@ export function parsePostDetailUuid(route: Route): string | null {
 }
 
 export function getRoute(): Route {
-  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  let path = window.location.pathname.replace(/\/$/, '') || '/';
+  if (path === '/app') path = '/';
   if (path.startsWith('/posts/') && path.length > '/posts/'.length) {
     return path as Route;
   }

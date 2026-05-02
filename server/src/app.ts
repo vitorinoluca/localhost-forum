@@ -55,6 +55,7 @@ app.set('trust proxy', env.TRUST_PROXY_HOPS === 0 ? false : env.TRUST_PROXY_HOPS
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: false,
     strictTransportSecurity:
       env.NODE_ENV === 'production'
         ? { maxAge: 31536000, includeSubDomains: true }

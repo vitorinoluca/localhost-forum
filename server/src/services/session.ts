@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { env } from '../config/env.js';
 import { pool } from '../db/pool.js';
+import { httpOnlyCookieAttributes } from '../utils/http-only-cookie.js';
 import { createSessionToken, hashSecret } from './tokens.js';
 
 const sessionDurationMs = 1000 * 60 * 60 * 24 * 7;
@@ -29,19 +30,11 @@ export async function createSession({
   );
 
   response.cookie(env.SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    ...httpOnlyCookieAttributes(),
     maxAge: sessionDurationMs,
-    path: '/',
   });
 }
 
 export function clearSessionCookie(response: Response) {
-  response.clearCookie(env.SESSION_COOKIE_NAME, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  });
+  response.clearCookie(env.SESSION_COOKIE_NAME, httpOnlyCookieAttributes());
 }

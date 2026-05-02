@@ -69,6 +69,13 @@ export function useAppController() {
   }, [applyRoute]);
 
   useEffect(() => {
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    if (path === '/app') {
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
+
+  useEffect(() => {
     userRef.current = user;
   }, [user]);
 
@@ -185,8 +192,8 @@ export function useAppController() {
         setUser(data.user);
         const p = getRoute();
         if (p === '/login' || p === '/register' || p === '/verify-email') {
-          window.history.pushState({}, '', '/app');
-          applyRoute('/app');
+          window.history.pushState({}, '', '/');
+          applyRoute('/');
         }
       })
       .catch(async () => {
@@ -219,7 +226,7 @@ export function useAppController() {
   }, [route, runAuthAction, user]);
 
   useEffect(() => {
-    if (route !== '/app' && route !== '/') return;
+    if (route !== '/') return;
     void Promise.resolve().then(() => loadPosts());
   }, [loadPosts, route]);
 
@@ -235,8 +242,8 @@ export function useAppController() {
         user &&
         (nextRoute === '/login' || nextRoute === '/register' || nextRoute === '/verify-email')
       ) {
-        window.history.pushState({}, '', '/app');
-        applyRoute('/app');
+        window.history.pushState({}, '', '/');
+        applyRoute('/');
         setMessage('');
         setDevCode('');
         return;
@@ -295,7 +302,7 @@ export function useAppController() {
           body: JSON.stringify({ credential }),
         });
         setUser(data.user);
-        navigate('/app');
+        navigate('/');
       } catch (error) {
         if (error instanceof ApiError) {
           setMessage(error.message);
@@ -445,7 +452,7 @@ export function useAppController() {
       setUser(data.user);
       setCode('');
       setMessage(data.message ?? 'Email verificado.');
-      navigate('/app');
+      navigate('/');
     });
     if (!ok) setVerifyCodeError(true);
   }
@@ -467,7 +474,7 @@ export function useAppController() {
       if (data.user) {
         setUser(data.user);
         setPassword('');
-        navigate('/app');
+        navigate('/');
       }
     });
     if (!ok) setLoginFieldError(true);

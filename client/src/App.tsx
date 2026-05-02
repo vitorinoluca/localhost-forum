@@ -69,7 +69,7 @@ export default function App() {
         />
       ) : null}
 
-      {app.route === '/' || app.route === '/app' ? (
+      {app.route === '/' ? (
         <ForumPage
           forumLoading={app.forumLoading}
           message={app.message}

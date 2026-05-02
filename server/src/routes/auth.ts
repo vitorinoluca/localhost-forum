@@ -6,6 +6,7 @@ import { env } from '../config/env.js';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { sendVerificationEmail } from '../services/email.js';
+import { httpOnlyCookieAttributes } from '../utils/http-only-cookie.js';
 import { upsertUserFromGoogle, verifyGoogleIdToken } from '../services/google-oauth.js';
 import { hashPassword, validatePasswordStrength, verifyPassword } from '../services/password.js';
 import { clearSessionCookie, createSession } from '../services/session.js';
@@ -124,21 +125,13 @@ function readPendingRegistrationUserId(request: AuthenticatedRequest) {
 
 function setPendingRegistrationCookie(response: Response, userId: string) {
   response.cookie(pendingRegistrationCookie, createPendingRegistrationValue(userId), {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    ...httpOnlyCookieAttributes(),
     maxAge: pendingRegistrationMaxAgeMs,
-    path: '/',
   });
 }
 
 function clearPendingRegistrationCookie(response: Response) {
-  response.clearCookie(pendingRegistrationCookie, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  });
+  response.clearCookie(pendingRegistrationCookie, httpOnlyCookieAttributes());
 }
 
 async function getPendingRegistrationUser(request: AuthenticatedRequest) {

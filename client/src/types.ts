@@ -5,7 +5,6 @@ export type KnownRoute =
   | '/login'
   | '/register'
   | '/verify-email'
-  | '/app'
   | '/profile/edit'
   | '/admin'
   | '/notifications'
