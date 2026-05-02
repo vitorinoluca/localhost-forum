@@ -8,11 +8,13 @@ import { ForumPage, PostDetailView } from './components/forum/ForumPage';
 import { NotificationsPage } from './components/inbox/NotificationsPage';
 import { ContactPage, PrivacyPage, TermsPage } from './components/legal/LegalPages';
 import { NavBar } from './components/layout/NavBar';
+import { SkipToContent } from './components/layout/SkipToContent';
 import { SiteFooter } from './components/layout/SiteFooter';
 import { ProfileEditView, PublicProfileView } from './components/profile/ProfileViews';
 import { useAppController } from './hooks/useAppController';
 import { useNotificationCount } from './hooks/useNotificationCount';
 import { getAdSlot, shouldShowAdsOnRoute, shouldShowAdPlacement } from './lib/ads-config';
+import { SeoHead } from './components/seo/SeoHead';
 import type { ForumAttachment } from './types';
 
 export default function App() {
@@ -24,16 +26,27 @@ export default function App() {
   const topAdSlot = adsAllowed ? getAdSlot('top') : undefined;
   const showTopAdRow = shouldShowAdPlacement(adsAllowed, topAdSlot);
 
-  if (app.checkingSession) {
-    return (
-      <main className='grid min-h-screen place-items-center bg-neutral-950 px-6 text-neutral-100'>
-        <Spinner label='Iniciando sesión' size='lg' />
-      </main>
-    );
-  }
-
   return (
-    <main className='flex min-h-screen flex-col bg-neutral-950 text-neutral-100'>
+    <>
+      <SkipToContent />
+      <SeoHead
+        detailPostId={app.detailPostId}
+        isPostDetail={app.isPostDetail}
+        posts={app.posts}
+        profileUserId={app.profileUserId}
+        publicProfile={app.publicProfile}
+        route={app.route}
+      />
+      {app.checkingSession ? (
+        <main
+          className='grid min-h-screen place-items-center bg-neutral-950 px-6 text-neutral-100'
+          id='main-content'
+          tabIndex={-1}
+        >
+          <Spinner label='Iniciando sesión' size='lg' />
+        </main>
+      ) : (
+        <main className='flex min-h-screen flex-col bg-neutral-950 text-neutral-100' id='main-content' tabIndex={-1}>
       <NavBar
         navigate={app.navigate}
         notificationsUnread={notifications.notificationsUnread}
@@ -44,11 +57,11 @@ export default function App() {
 
       <div className='flex-1'>
         {showTopAdRow ? (
-          <div className='border-b border-white/5 bg-neutral-950/90'>
+          <aside aria-label='Publicidad' className='border-b border-white/5 bg-neutral-950/90'>
             <div className='mx-auto max-w-7xl px-6 py-3'>
               <AdSenseSlot format='horizontal' slot={topAdSlot} />
             </div>
-          </div>
+          </aside>
         ) : null}
 
         {app.route === '/terms' ? <TermsPage navigate={app.navigate} /> : null}
@@ -190,6 +203,8 @@ export default function App() {
       </div>
 
       <SiteFooter navigate={app.navigate} route={app.route} />
-    </main>
+        </main>
+      )}
+    </>
   );
 }

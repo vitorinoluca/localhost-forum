@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { apiUrl, type AuthUser } from '../../api';
 import { getAdSlot, shouldShowAdPlacement } from '../../lib/ads-config';
+import { siteDisplayName } from '../../lib/site-brand';
 import type { ForumAttachment, ForumPost, Route } from '../../types';
 import { AdSenseSlot } from '../ads/AdSenseSlot';
 import { Alert, Field } from '../common/FormControls';
@@ -80,7 +81,7 @@ export function ForumPage({
         <section className='flex flex-col gap-6 border-b border-white/10 pb-10 sm:flex-row sm:items-end sm:justify-between'>
           <div>
             <h1 className='font-mono text-3xl font-semibold tracking-tight text-white sm:text-4xl'>
-              localhost:forum
+              {siteDisplayName}
             </h1>
             <p className='mt-3 max-w-lg text-sm leading-relaxed text-neutral-400'>
               Ideas, proyectos y conversación entre desarrolladores.
@@ -142,7 +143,12 @@ export function ForumPage({
       </div>
 
       {isModalOpen ? (
-        <div className='fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-6'>
+        <div
+          aria-labelledby='modal-new-post-title'
+          aria-modal='true'
+          className='fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-6'
+          role='dialog'
+        >
           <div
             className='absolute inset-0 bg-black/90 backdrop-blur-sm'
             onClick={() => setIsModalOpen(false)}
@@ -150,10 +156,14 @@ export function ForumPage({
           />
           <div className='relative z-10 w-full max-w-lg rounded-sm border border-white/10 bg-[#0f0f12] p-8 shadow-2xl duration-300 animate-in fade-in zoom-in'>
             <div className='mb-8 flex items-center justify-between'>
-              <h2 className='font-["Outfit"] text-2xl font-bold uppercase tracking-tighter text-white'>
+              <h2
+                className='font-["Outfit"] text-2xl font-bold uppercase tracking-tighter text-white'
+                id='modal-new-post-title'
+              >
                 Nueva publicación
               </h2>
               <button
+                aria-label='Cerrar ventana de publicación'
                 className='p-2 text-neutral-500 transition hover:text-white'
                 onClick={() => setIsModalOpen(false)}
                 type='button'
@@ -285,6 +295,8 @@ function PostCard({
   const footer = (
     <div className='flex items-center gap-5 border-t border-white/[0.06] px-4 py-3'>
       <button
+        aria-label={`Me gusta (${post.likes})`}
+        aria-pressed={post.myReaction === 'like'}
         className='flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest transition-all duration-150 hover:scale-110 active:scale-95'
         style={{ color: post.myReaction === 'like' ? '#ef4444' : '#52525b' }}
         type='button'
@@ -298,6 +310,8 @@ function PostCard({
         {post.likes}
       </button>
       <button
+        aria-label={`No me gusta (${post.dislikes})`}
+        aria-pressed={post.myReaction === 'dislike'}
         className='flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest transition-all duration-150 hover:scale-110 active:scale-95'
         style={{ color: post.myReaction === 'dislike' ? '#94a3b8' : '#52525b' }}
         type='button'
@@ -312,6 +326,7 @@ function PostCard({
         {post.dislikes}
       </button>
       <button
+        aria-label={`Ver publicación y comentarios (${post.comments.length})`}
         className='ml-auto flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-neutral-500 transition-all duration-150 hover:scale-110 hover:text-neutral-300 active:scale-95'
         type='button'
         onClick={() => onNavigate(`/posts/${post.id}`)}
@@ -461,7 +476,7 @@ export function PostDetailView({
 
   if (!post) {
     return (
-      <div className='py-20 text-center'>
+      <div className='py-20 text-center' role='status'>
         <p className='text-xs font-bold uppercase tracking-widest text-neutral-600'>
           Publicación no encontrada
         </p>
@@ -487,8 +502,8 @@ export function PostDetailView({
   }
 
   return (
-    <section className='mx-auto w-full max-w-4xl px-6 py-12 duration-500 animate-in fade-in slide-in-from-bottom-4'>
-      <div className='mb-12 flex flex-wrap items-center justify-between gap-4'>
+    <article className='mx-auto w-full max-w-4xl px-6 py-12 duration-500 animate-in fade-in slide-in-from-bottom-4'>
+      <header className='mb-12 flex flex-wrap items-center justify-between gap-4'>
         <button
           className='flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 transition hover:text-white'
           type='button'
@@ -509,7 +524,7 @@ export function PostDetailView({
             Eliminar publicación
           </button>
         ) : null}
-      </div>
+      </header>
 
       <div className='grid grid-cols-1 gap-16 lg:grid-cols-2'>
         <div className='space-y-6'>
@@ -528,7 +543,7 @@ export function PostDetailView({
         </div>
 
         <div className='space-y-12'>
-          <div className='space-y-6 border-b border-white/5 pb-12'>
+          <header className='space-y-6 border-b border-white/5 pb-12'>
             <button
               className='flex items-center gap-4 rounded-sm text-left transition hover:opacity-90'
               type='button'
@@ -539,9 +554,9 @@ export function PostDetailView({
                 <span className='text-xs font-bold uppercase tracking-tight text-white'>
                   {post.author.name}
                 </span>
-                <span className='text-[10px] font-bold uppercase tracking-widest text-neutral-700'>
+                <time className='text-[10px] font-bold uppercase tracking-widest text-neutral-700' dateTime={post.createdAt}>
                   {formatPostDate(post.createdAt)}
-                </span>
+                </time>
               </div>
             </button>
 
@@ -551,8 +566,10 @@ export function PostDetailView({
 
             <p className='whitespace-pre-wrap text-sm leading-relaxed text-neutral-400'>{post.body}</p>
 
-            <div className='flex items-center gap-8 pt-4'>
+            <div className='flex items-center gap-8 pt-4' role='group' aria-label='Reacciones a la publicación'>
               <button
+                aria-label={`Me gusta (${post.likes})`}
+                aria-pressed={post.myReaction === 'like'}
                 className='flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-150 hover:scale-105 active:scale-95'
                 style={{ color: post.myReaction === 'like' ? '#ef4444' : '#52525b' }}
                 type='button'
@@ -566,6 +583,8 @@ export function PostDetailView({
                 Me gusta ({post.likes})
               </button>
               <button
+                aria-label={`No me gusta (${post.dislikes})`}
+                aria-pressed={post.myReaction === 'dislike'}
                 className='flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-150 hover:scale-105 active:scale-95'
                 style={{ color: post.myReaction === 'dislike' ? '#94a3b8' : '#52525b' }}
                 type='button'
@@ -580,17 +599,18 @@ export function PostDetailView({
                 No me gusta ({post.dislikes})
               </button>
             </div>
-          </div>
+          </header>
 
-          <div className='space-y-10'>
-            <h3 className='flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-500'>
-              <MessageCircle className='text-neutral-500' size={16} strokeWidth={2} />
+          <section aria-labelledby='comments-heading' className='space-y-10'>
+            <h2 className='flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-500' id='comments-heading'>
+              <MessageCircle aria-hidden={true} className='text-neutral-500' size={16} strokeWidth={2} />
               Comentarios ({post.comments.length})
-            </h3>
+            </h2>
 
-            <div className='scrollbar-thin scrollbar-thumb-white/10 max-h-[400px] space-y-8 overflow-y-auto pr-4'>
+            <ul className='scrollbar-thin scrollbar-thumb-white/10 max-h-[400px] list-none space-y-8 overflow-y-auto pr-4'>
               {post.comments.map((comment) => (
-                <div key={comment.id} className='space-y-3 border-l border-white/10 pl-4'>
+                <li key={comment.id}>
+                  <article className='space-y-3 border-l border-white/10 pl-4'>
                   <p className='text-sm leading-relaxed text-neutral-300'>{comment.body}</p>
                   <button
                     className='flex items-center gap-2 rounded-sm transition hover:opacity-90'
@@ -605,24 +625,33 @@ export function PostDetailView({
                     <span className='text-[9px] font-bold uppercase tracking-widest text-neutral-700'>
                       {comment.author.name}
                     </span>
-                    <span className='text-[8px] uppercase text-neutral-800'>
+                    <time className='text-[8px] uppercase text-neutral-800' dateTime={comment.createdAt}>
                       {formatPostDate(comment.createdAt)}
-                    </span>
+                    </time>
                   </button>
-                </div>
+                  </article>
+                </li>
               ))}
               {!post.comments.length ? (
-                <p className='text-[10px] uppercase tracking-widest text-neutral-700'>
+                <li className='text-[10px] uppercase tracking-widest text-neutral-700'>
                   Todavía no hay comentarios
-                </p>
+                </li>
               ) : null}
-            </div>
+            </ul>
 
             {user ? (
-              <form className='space-y-4 border-t border-white/5 pt-6' onSubmit={handleCommentSubmit}>
+              <form
+                aria-label='Enviar comentario'
+                className='space-y-4 border-t border-white/5 pt-6'
+                onSubmit={handleCommentSubmit}
+              >
+                <label className='sr-only' htmlFor='post-comment-body'>
+                  Tu comentario
+                </label>
                 <textarea
                   className='min-h-20 w-full resize-none rounded-sm border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-[#3b82f6]'
                   disabled={commentLoading}
+                  id='post-comment-body'
                   value={commentBody}
                   placeholder='Escribí un comentario…'
                   onChange={(e) => setCommentBody(e.target.value)}
@@ -640,16 +669,16 @@ export function PostDetailView({
                 Iniciá sesión para comentar
               </p>
             )}
-          </div>
+          </section>
         </div>
       </div>
 
       {showArticleAd ? (
-        <div className='mt-12 flex min-h-[120px] justify-center border-t border-white/5 pt-8'>
+        <aside className='mt-12 flex min-h-[120px] justify-center border-t border-white/5 pt-8' aria-label='Publicidad'>
           <AdSenseSlot format='horizontal' slot={articleAdSlot} />
-        </div>
+        </aside>
       ) : null}
-    </section>
+    </article>
   );
 }
 

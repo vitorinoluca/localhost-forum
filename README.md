@@ -44,8 +44,6 @@ npm run dev
 
 Por defecto el front usa el puerto **5174** y el API **4000**. El proxy de Vite apunta a **`http://127.0.0.1:4000`**. Si el front en producción está en otro dominio que el API, definí la URL base del API según tu despliegue.
 
-**AdSense:** variables `VITE_GOOGLE_ADSENSE_*` en el cliente; detalle en `docs/monetizacion-google-adsense.md`.
-
 ## Scripts
 
 | Comando | Descripción |

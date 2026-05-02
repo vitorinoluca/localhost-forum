@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import historyApiFallback from 'connect-history-api-fallback';
 import type { Plugin } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
+import { seoPublicFilesPlugin } from './vite-plugins/seo-public-files';
 
 function spaHistoryFallback(): Plugin {
   const handler = historyApiFallback({
@@ -15,6 +16,7 @@ function spaHistoryFallback(): Plugin {
     if (path.startsWith('/api')) return true;
     if (path.startsWith('/@')) return true;
     if (path.startsWith('/node_modules')) return true;
+    if (path === '/robots.txt' || path === '/sitemap.xml' || path === '/ads.txt') return true;
     return false;
   }
 
@@ -42,7 +44,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     appType: 'spa',
-    plugins: [spaHistoryFallback(), react()],
+    plugins: [seoPublicFilesPlugin(mode), spaHistoryFallback(), react()],
     build: {
       sourcemap: mode !== 'production',
     },

@@ -1,3 +1,4 @@
+import { siteDisplayName } from '../../lib/site-brand';
 import type { Route } from '../../types';
 
 const linkClass =
@@ -32,7 +33,7 @@ export function SiteFooter({
             Contacto
           </button>
         </nav>
-        <p className='font-mono text-[10px] text-neutral-600'>localhost:forum</p>
+        <p className='font-mono text-[10px] text-neutral-600'>{siteDisplayName}</p>
       </div>
     </footer>
   );
