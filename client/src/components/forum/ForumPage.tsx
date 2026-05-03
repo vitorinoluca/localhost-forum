@@ -8,10 +8,8 @@ import {
   type MouseEvent,
 } from 'react';
 import { apiUrl, type AuthUser } from '../../api';
-import { getAdSlot, shouldShowAdPlacement } from '../../lib/ads-config';
 import { siteDisplayName } from '../../lib/site-brand';
 import type { ForumAttachment, ForumPost, Route } from '../../types';
-import { AdSenseSlot } from '../ads/AdSenseSlot';
 import { Alert, Field } from '../common/FormControls';
 import { AvatarCircle } from '../profile/ProfileViews';
 
@@ -32,7 +30,6 @@ export function ForumPage({
   onReact,
   onDeletePost,
   onNavigate,
-  showAds,
 }: {
   user: AuthUser | null;
   forumLoading: boolean;
@@ -50,11 +47,8 @@ export function ForumPage({
   onReact: (postId: string, reaction: 'like' | 'dislike') => void;
   onDeletePost: (postId: string) => Promise<boolean>;
   onNavigate: (route: Route) => void;
-  showAds: boolean;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const feedAdSlot = showAds ? getAdSlot('feed') : undefined;
-  const showFeedAdRow = shouldShowAdPlacement(showAds, feedAdSlot);
   const wasLoadingRef = useRef(false);
 
   const previewUrls = useMemo(() => {
@@ -110,30 +104,17 @@ export function ForumPage({
           {forumLoading ? (
             Array.from({ length: 10 }).map((_, index) => <PostSkeleton index={index} key={index} />)
           ) : posts.length ? (
-            posts.flatMap((post, index) => {
-              const nodes = [
-                <PostCard
-                  key={post.id}
-                  currentUserId={user?.id ?? null}
-                  onDeletePost={onDeletePost}
-                  onImageOpen={onImageOpen}
-                  onNavigate={onNavigate}
-                  onReact={onReact}
-                  post={post}
-                />,
-              ];
-              if (showFeedAdRow && index === 3) {
-                nodes.push(
-                  <div
-                    key={`ad-feed-${post.id}`}
-                    className='break-inside-avoid mb-6 [column-span:all] flex min-h-[120px] justify-center border-y border-white/5 bg-neutral-950/60 py-8'
-                  >
-                    <AdSenseSlot slot={feedAdSlot} />
-                  </div>,
-                );
-              }
-              return nodes;
-            })
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                currentUserId={user?.id ?? null}
+                onDeletePost={onDeletePost}
+                onImageOpen={onImageOpen}
+                onNavigate={onNavigate}
+                onReact={onReact}
+                post={post}
+              />
+            ))
           ) : (
             <p className='text-xs font-bold uppercase tracking-widest text-neutral-600'>
               Todavía no hay publicaciones
@@ -443,7 +424,6 @@ export function PostDetailView({
   onImageOpen,
   onNavigate,
   onBack,
-  showAds,
 }: {
   postId: string;
   posts: ForumPost[];
@@ -454,13 +434,10 @@ export function PostDetailView({
   onImageOpen: (attachment: ForumAttachment) => void;
   onNavigate: (route: Route) => void;
   onBack: () => void;
-  showAds: boolean;
 }) {
   const [commentBody, setCommentBody] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const post = posts.find((p) => p.id === postId);
-  const articleAdSlot = showAds ? getAdSlot('article') : undefined;
-  const showArticleAd = shouldShowAdPlacement(showAds, articleAdSlot);
   const isAuthor = user !== null && post && post.author.id === user.id;
 
   function confirmDeletePost() {
@@ -672,12 +649,6 @@ export function PostDetailView({
           </section>
         </div>
       </div>
-
-      {showArticleAd ? (
-        <aside className='mt-12 flex min-h-[120px] justify-center border-t border-white/5 pt-8' aria-label='Publicidad'>
-          <AdSenseSlot slot={articleAdSlot} />
-        </aside>
-      ) : null}
     </article>
   );
 }

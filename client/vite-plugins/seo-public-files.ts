@@ -12,13 +12,6 @@ function trimEnv(mode: string, key: string): string {
   return (all[key] ?? '').trim();
 }
 
-export function buildAdsTxt(mode: string): string | null {
-  const client = trimEnv(mode, 'VITE_GOOGLE_ADSENSE_CLIENT');
-  if (!client.startsWith('ca-pub-')) return null;
-  const pub = client.replace(/^ca-/, '');
-  return `google.com, ${pub}, DIRECT, f08c47fec0942fa0\n`;
-}
-
 export function buildRobotsTxt(mode: string): string {
   const base = trimEnv(mode, 'VITE_SITE_URL').replace(/\/$/, '');
   const lines = ['User-agent: *', 'Allow: /'];
@@ -63,14 +56,6 @@ export function seoPublicFilesPlugin(mode: string): Plugin {
       res.end(buildSitemapXml(resolvedMode));
       return true;
     }
-    if (pathOnly === '/ads.txt') {
-      const ads = buildAdsTxt(resolvedMode);
-      if (ads) {
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.end(ads);
-        return true;
-      }
-    }
     return false;
   }
 
@@ -97,10 +82,6 @@ export function seoPublicFilesPlugin(mode: string): Plugin {
       const sitemap = buildSitemapXml(resolvedMode);
       writeFileSync(join(outDir, 'robots.txt'), robots);
       writeFileSync(join(outDir, 'sitemap.xml'), sitemap);
-      const ads = buildAdsTxt(resolvedMode);
-      if (ads) {
-        writeFileSync(join(outDir, 'ads.txt'), ads);
-      }
     },
   };
 }

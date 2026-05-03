@@ -54,7 +54,7 @@ export function NavBar({
   }
 
   return (
-    <header className='sticky top-0 z-40 border-b border-white/10 bg-black/80 backdrop-blur-sm'>
+    <header className='sticky top-0 z-40 shrink-0 border-b border-white/10 bg-black/80 backdrop-blur-sm'>
       <div className='mx-auto flex min-h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6'>
         <button
           aria-label={`Ir al inicio · ${siteDisplayName}`}

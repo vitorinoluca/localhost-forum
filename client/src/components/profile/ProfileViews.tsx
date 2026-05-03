@@ -2,9 +2,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useMemo } from 'react';
 import { Images } from 'lucide-react';
 import { apiUrl, type AuthUser } from '../../api';
-import { getAdSlot, shouldShowAdPlacement } from '../../lib/ads-config';
 import type { PublicProfile, Route } from '../../types';
-import { AdSenseSlot } from '../ads/AdSenseSlot';
 import { Alert, Field, SubmitButton, TextAreaField } from '../common/FormControls';
 import { Spinner } from '../common/Spinner';
 
@@ -44,7 +42,6 @@ export function PublicProfileView({
   loading,
   errorMessage,
   viewerId,
-  showAds,
   onNavigate,
   onEditOwnProfile,
 }: {
@@ -52,12 +49,9 @@ export function PublicProfileView({
   loading: boolean;
   errorMessage: string;
   viewerId: string | null;
-  showAds: boolean;
   onNavigate: (route: Route) => void;
   onEditOwnProfile: () => void;
 }) {
-  const profileAdSlot = showAds ? getAdSlot('profile') : undefined;
-  const showProfileAd = shouldShowAdPlacement(showAds, profileAdSlot);
   return (
     <section className='mx-auto w-full max-w-2xl px-6 py-12'>
       <button
@@ -126,12 +120,6 @@ export function PublicProfileView({
                 : 'Este usuario todavía no escribió una biografía.'}
             </p>
           </div>
-
-          {showProfileAd ? (
-            <div className='flex min-h-[100px] justify-center border-t border-white/5 pt-8'>
-              <AdSenseSlot slot={profileAdSlot} />
-            </div>
-          ) : null}
         </div>
       ) : null}
     </section>

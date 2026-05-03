@@ -16,7 +16,7 @@ function LegalShell({
   children: ReactNode;
 }) {
   return (
-    <article className='mx-auto min-h-[60vh] max-w-3xl px-6 py-12'>
+    <article className='mx-auto w-full max-w-3xl px-6 py-12'>
       <button
         className='mb-10 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 transition hover:text-white'
         type='button'

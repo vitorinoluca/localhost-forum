@@ -28,7 +28,7 @@ export function attachClientSpaIfPresent(
 
   app.use(express.static(distPath, { index: false }));
 
-  const noSpaFallback = new Set(['/sitemap.xml', '/sitemaps.xml', '/robots.txt', '/ads.txt']);
+  const noSpaFallback = new Set(['/sitemap.xml', '/sitemaps.xml', '/robots.txt']);
 
   app.use((request, response, next) => {
     if (request.method !== 'GET') {

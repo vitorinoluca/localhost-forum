@@ -36,7 +36,7 @@ function spaHistoryFallback(): Plugin {
     if (path.startsWith('/api')) return true;
     if (path.startsWith('/@')) return true;
     if (path.startsWith('/node_modules')) return true;
-    if (path === '/robots.txt' || path === '/sitemap.xml' || path === '/ads.txt') return true;
+    if (path === '/robots.txt' || path === '/sitemap.xml') return true;
     return false;
   }
 

@@ -4,23 +4,9 @@ import type { Route } from '../../types';
 const linkClass =
   'text-[10px] font-bold uppercase tracking-widest text-neutral-500 transition hover:text-white';
 
-export function SiteFooter({
-  navigate,
-  route,
-}: {
-  navigate: (route: Route) => void;
-  route: Route;
-}) {
-  const onLegal = route === '/terms' || route === '/privacy' || route === '/contact';
-
+export function SiteFooter({ navigate }: { navigate: (route: Route) => void }) {
   return (
-    <footer
-      className={
-        onLegal
-          ? 'mt-auto border-t border-white/10 bg-neutral-950'
-          : 'border-t border-white/10 bg-neutral-950/80'
-      }
-    >
+    <footer className='shrink-0 border-t border-white/10 bg-neutral-950/80'>
       <div className='mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between'>
         <nav aria-label='Legal' className='flex flex-wrap items-center gap-x-6 gap-y-2'>
           <button className={linkClass} type='button' onClick={() => navigate('/terms')}>
