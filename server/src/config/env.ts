@@ -32,6 +32,7 @@ const rawEnvSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   SESSION_COOKIE_NAME: z.string().default('my_app_session'),
   SESSION_COOKIE_SAME_SITE: z.enum(['lax', 'none']).optional(),
+  BREVO_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),
@@ -54,6 +55,7 @@ const raw = rawEnvSchema.parse(process.env);
 
 export const env = {
   ...raw,
+  BREVO_API_KEY: raw.BREVO_API_KEY?.trim() || undefined,
   RESEND_API_KEY: raw.RESEND_API_KEY?.trim() || undefined,
   AUTH_LOGIN_LOG: parseEnvBoolean(process.env.AUTH_LOGIN_LOG, true),
   DATABASE_SSL: parseEnvBoolean(process.env.DATABASE_SSL, false),

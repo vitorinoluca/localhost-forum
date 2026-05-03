@@ -18,6 +18,17 @@ const smtpTransporter =
       })
     : nodemailer.createTransport({ jsonTransport: true });
 
+function parseMailFrom(from: string): { name: string; email: string } {
+  const trimmed = from.trim();
+  const bracket = trimmed.match(/^(.+?)\s*<([^<>]+)>$/);
+  if (bracket) {
+    const name = (bracket[1] ?? '').trim().replace(/^["']|["']$/g, '');
+    const email = (bracket[2] ?? '').trim();
+    return { name: name || 'Foro', email };
+  }
+  return { name: 'Foro', email: trimmed };
+}
+
 function verificationMailParts(code: string) {
   const subject = 'Tu código de verificación';
   const text = `Tu código de verificación es ${code}. Vence en 15 minutos.`;
@@ -32,8 +43,44 @@ function verificationMailParts(code: string) {
   return { subject, text, html };
 }
 
+async function sendViaBrevo(to: string, subject: string, html: string, text: string) {
+  const sender = parseMailFrom(env.MAIL_FROM);
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      'api-key': env.BREVO_API_KEY!,
+    },
+    body: JSON.stringify({
+      sender: { name: sender.name, email: sender.email },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    }),
+  });
+
+  if (!res.ok) {
+    const raw = await res.text();
+    let msg = raw;
+    try {
+      const j = JSON.parse(raw) as { message?: string };
+      if (j.message) msg = j.message;
+    } catch {
+      /* cuerpo no JSON */
+    }
+    throw new Error(msg || `Brevo HTTP ${res.status}`);
+  }
+}
+
 export async function sendVerificationEmail(email: string, code: string) {
   const { subject, text, html } = verificationMailParts(code);
+
+  if (env.BREVO_API_KEY) {
+    await sendViaBrevo(email, subject, html, text);
+    return;
+  }
 
   if (env.RESEND_API_KEY) {
     const resend = new Resend(env.RESEND_API_KEY);

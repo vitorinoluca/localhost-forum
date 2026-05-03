@@ -30,7 +30,7 @@ Editar `server/.env` como mínimo:
 - `CLIENT_ORIGIN`: URL base del sitio en el navegador (en desarrollo suele ser `http://localhost:5174`)  
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`  
 - Bucket de Storage configurado y con políticas acordes a tu uso  
-- Correo de verificación: en hosted gratis tipo Render, SMTP saliente suele estar bloqueado; configurá **`RESEND_API_KEY`** y **`MAIL_FROM`** (listados en `.env.example`). SMTP opcional solo donde la red permita los puertos habituales.
+- Correo de verificación: en **Render free** el SMTP directo está bloqueado. Usá **Brevo** (API HTTPS): cuenta gratuita en brevo.com → SMTP & API → clave API → en **Senders** verificá tu Gmail como remitente → `BREVO_API_KEY` y **`MAIL_FROM`** con ese mismo correo (ej. `Mi foro <tu@gmail.com>`). Opcional: **Resend** si tenés dominio verificado. SMTP solo en local o hosts que permitan el puerto.
 
 La _service role_ de Supabase solo en el servidor; nunca en variables `VITE_*` ni en el código del cliente.
 
