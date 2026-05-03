@@ -89,14 +89,29 @@ function supabaseCspOrigin(): string | null {
 
 const supabaseOrigin = supabaseCspOrigin();
 
+const defaultCsp = helmet.contentSecurityPolicy.getDefaultDirectives();
+const previousImg = defaultCsp['img-src'] ?? ["'self'", 'data:'];
+const previousScript = defaultCsp['script-src'] ?? ["'self'"];
+const previousStyle = defaultCsp['style-src'] ?? ["'self'", "'unsafe-inline'"];
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        'img-src': [
+        ...defaultCsp,
+        'img-src': [...previousImg, 'blob:', ...(supabaseOrigin ? [supabaseOrigin] : [])],
+        'script-src': [
+          ...previousScript,
+          'https://accounts.google.com',
+          'https://apis.google.com',
+        ],
+        'style-src': [...previousStyle, 'https://accounts.google.com'],
+        'frame-src': ["'self'", 'https://accounts.google.com'],
+        'connect-src': [
           "'self'",
-          'data:',
-          'blob:',
+          'https://accounts.google.com',
+          'https://www.googleapis.com',
+          'https://oauth2.googleapis.com',
           ...(supabaseOrigin ? [supabaseOrigin] : []),
         ],
       },
