@@ -213,10 +213,16 @@ export function useAppController() {
   }, [applyRoute]);
 
   useEffect(() => {
-    if (route !== '/verify-email' || user || verificationBootedRef.current) return;
+    if (checkingSession || route !== '/verify-email' || user || verificationBootedRef.current) {
+      return;
+    }
     verificationBootedRef.current = true;
     void runAuthAction(async () => {
       const state = await apiRequest<AuthPayload>('/api/auth/registration-state');
+      if (state.status === 'none') {
+        setMessage('No hay verificación pendiente. Registrate de nuevo o inicia sesión.');
+        return;
+      }
       setEmailMasked(state.emailMasked ?? '');
       const data = await apiRequest<AuthPayload>('/api/auth/send-verification', {
         method: 'POST',
@@ -225,7 +231,7 @@ export function useAppController() {
       setDevCode(data.devCode ?? '');
       setMessage(data.message ?? 'Codigo enviado.');
     });
-  }, [route, runAuthAction, user]);
+  }, [checkingSession, route, runAuthAction, user]);
 
   useEffect(() => {
     if (route !== '/') return;
@@ -240,10 +246,7 @@ export function useAppController() {
 
   const navigate = useCallback(
     (nextRoute: Route) => {
-      if (
-        user &&
-        (nextRoute === '/login' || nextRoute === '/register' || nextRoute === '/verify-email')
-      ) {
+      if (user && (nextRoute === '/login' || nextRoute === '/register')) {
         window.history.pushState({}, '', '/');
         applyRoute('/');
         setMessage('');
