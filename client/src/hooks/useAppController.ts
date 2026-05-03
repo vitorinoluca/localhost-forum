@@ -200,9 +200,11 @@ export function useAppController() {
         setUser(null);
         if (getRoute() !== '/') return;
         try {
-          await apiRequest<AuthPayload>('/api/auth/registration-state');
-          window.history.pushState({}, '', '/verify-email');
-          applyRoute('/verify-email');
+          const reg = await apiRequest<AuthPayload>('/api/auth/registration-state');
+          if (reg.status === 'verification_required') {
+            window.history.pushState({}, '', '/verify-email');
+            applyRoute('/verify-email');
+          }
         } catch {
           return;
         }

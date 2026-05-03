@@ -2,6 +2,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import express, { type ErrorRequestHandler } from 'express';
 import helmet from 'helmet';
+import { URL } from 'node:url';
 import { env } from './config/env.js';
 import { checkDatabaseConnection } from './db/pool.js';
 import { authRouter } from './routes/auth.js';
@@ -78,8 +79,28 @@ const corsOptions: cors.CorsOptions = {
 
 app.set('trust proxy', env.TRUST_PROXY_HOPS === 0 ? false : env.TRUST_PROXY_HOPS);
 
+function supabaseCspOrigin(): string | null {
+  try {
+    return new URL(env.SUPABASE_URL).origin;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseOrigin = supabaseCspOrigin();
+
 app.use(
   helmet({
+    contentSecurityPolicy: {
+      directives: {
+        'img-src': [
+          "'self'",
+          'data:',
+          'blob:',
+          ...(supabaseOrigin ? [supabaseOrigin] : []),
+        ],
+      },
+    },
     crossOriginResourcePolicy: { policy: 'cross-origin' },
     crossOriginOpenerPolicy: false,
     strictTransportSecurity:

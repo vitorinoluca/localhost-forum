@@ -201,7 +201,7 @@ authRouter.get('/registration-state', async (request: AuthenticatedRequest, resp
   const user = await getPendingRegistrationUser(request);
 
   if (!user) {
-    response.status(404).json({ message: 'No hay un registro pendiente.' });
+    response.json({ status: 'none' });
     return;
   }
 
