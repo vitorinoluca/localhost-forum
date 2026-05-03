@@ -73,6 +73,27 @@ function supabaseCspOrigin(): string | null {
 
 const supabaseOrigin = supabaseCspOrigin();
 
+const adSenseImg = [
+  'https://pagead2.googlesyndication.com',
+  'https://googleads.g.doubleclick.net',
+  'https://tpc.googlesyndication.com',
+  'https://www.google.com',
+  'https://www.gstatic.com',
+];
+const adSenseFrame = [
+  'https://googleads.g.doubleclick.net',
+  'https://tpc.googlesyndication.com',
+  'https://www.google.com',
+];
+const adSenseConnect = [
+  'https://pagead2.googlesyndication.com',
+  'https://googleads.g.doubleclick.net',
+  'https://tpc.googlesyndication.com',
+  'https://www.google.com',
+  'https://ep1.adtrafficquality.google',
+  'https://ep2.adtrafficquality.google',
+];
+
 const defaultCsp = helmet.contentSecurityPolicy.getDefaultDirectives();
 const previousImg = defaultCsp['img-src'] ?? ["'self'", 'data:'];
 const previousScript = defaultCsp['script-src'] ?? ["'self'"];
@@ -83,19 +104,22 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...defaultCsp,
-        'img-src': [...previousImg, 'blob:', ...(supabaseOrigin ? [supabaseOrigin] : [])],
+        'img-src': [...previousImg, 'blob:', ...adSenseImg, ...(supabaseOrigin ? [supabaseOrigin] : [])],
         'script-src': [
           ...previousScript,
           'https://accounts.google.com',
           'https://apis.google.com',
+          'https://pagead2.googlesyndication.com',
+          'https://www.googletagservices.com',
         ],
         'style-src': [...previousStyle, 'https://accounts.google.com'],
-        'frame-src': ["'self'", 'https://accounts.google.com'],
+        'frame-src': ["'self'", 'https://accounts.google.com', ...adSenseFrame],
         'connect-src': [
           "'self'",
           'https://accounts.google.com',
           'https://www.googleapis.com',
           'https://oauth2.googleapis.com',
+          ...adSenseConnect,
           ...(supabaseOrigin ? [supabaseOrigin] : []),
         ],
       },
