@@ -20,6 +20,10 @@ function formatLastmod(d: Date): string {
 
 export const sitemapRouter = Router();
 
+sitemapRouter.get('/sitemaps.xml', (_request, response) => {
+  response.redirect(301, '/sitemap.xml');
+});
+
 sitemapRouter.get('/sitemap.xml', async (_request, response) => {
   const base = env.CLIENT_ORIGIN.replace(/\/$/, '');
 

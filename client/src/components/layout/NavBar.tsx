@@ -40,10 +40,6 @@ export function NavBar({
   const showExploreLink = route === '/login' || route === '/register';
 
   useEffect(() => {
-    setMenuOpen(false);
-  }, [route]);
-
-  useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false);

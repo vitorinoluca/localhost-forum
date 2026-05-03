@@ -10,10 +10,6 @@ function defaultClientDistPath(): string {
   return path.join(repoRoot, 'client', 'dist');
 }
 
-/**
- * En produccion, si existe `client/dist`, sirve el SPA desde el mismo host que la API.
- * Asi las cookies de sesion son same-origin (necesario entre dos *.onrender.com o con Chrome incognito).
- */
 export function attachClientSpaIfPresent(
   app: Express,
   options: { explicitDistPath?: string | undefined } = {},
@@ -32,6 +28,8 @@ export function attachClientSpaIfPresent(
 
   app.use(express.static(distPath, { index: false }));
 
+  const noSpaFallback = new Set(['/sitemap.xml', '/sitemaps.xml', '/robots.txt', '/ads.txt']);
+
   app.use((request, response, next) => {
     if (request.method !== 'GET') {
       next();
@@ -39,6 +37,10 @@ export function attachClientSpaIfPresent(
     }
     if (request.path.startsWith('/api')) {
       response.status(404).json({ message: 'No encontrado.' });
+      return;
+    }
+    if (noSpaFallback.has(request.path)) {
+      response.status(404).type('text/plain').send('Not found');
       return;
     }
 

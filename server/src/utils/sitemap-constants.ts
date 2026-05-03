@@ -1,6 +1,3 @@
-/**
- * Listado estático del sitemap (servidor). Debe coincidir con client/vite-plugins/sitemap-constants.ts.
- */
 export const SITEMAP_STATIC_ENTRIES: { path: string; priority: string; changefreq: string }[] = [
   { path: '/', priority: '1.0', changefreq: 'daily' },
   { path: '/terms', priority: '0.5', changefreq: 'monthly' },
@@ -8,7 +5,6 @@ export const SITEMAP_STATIC_ENTRIES: { path: string; priority: string; changefre
   { path: '/contact', priority: '0.6', changefreq: 'monthly' },
 ];
 
-/** Rutas que no deben aparecer en sitemap.xml (ni como URLs inventadas). */
 export function isBlockedSitemapPathname(pathname: string): boolean {
   const p = pathname.replace(/\/$/, '') || '/';
   if (
@@ -27,7 +23,6 @@ export function isBlockedSitemapPathname(pathname: string): boolean {
   return false;
 }
 
-/** Líneas Disallow extra para robots.txt (auth y áreas privadas). */
 export const ROBOTS_DISALLOW_PATHS = [
   '/login',
   '/register',

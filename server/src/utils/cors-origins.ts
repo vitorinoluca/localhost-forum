@@ -1,4 +1,3 @@
-/** Canonicaliza el Origin del navegador para comparar con la lista permitida. */
 export function normalizeBrowserOrigin(origin: string): string {
   const trimmed = origin.trim();
   try {

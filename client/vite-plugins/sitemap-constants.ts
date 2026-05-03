@@ -1,6 +1,3 @@
-/**
- * Copia de server/src/utils/sitemap-constants.ts — mantener ambos archivos alineados.
- */
 export const SITEMAP_STATIC_ENTRIES: { path: string; priority: string; changefreq: string }[] = [
   { path: '/', priority: '1.0', changefreq: 'daily' },
   { path: '/terms', priority: '0.5', changefreq: 'monthly' },

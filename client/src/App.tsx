@@ -48,6 +48,7 @@ export default function App() {
       ) : (
         <main className='flex min-h-screen flex-col bg-neutral-950 text-neutral-100' id='main-content' tabIndex={-1}>
       <NavBar
+        key={app.route}
         navigate={app.navigate}
         notificationsUnread={notifications.notificationsUnread}
         route={app.route}
