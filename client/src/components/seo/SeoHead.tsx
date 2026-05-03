@@ -11,6 +11,7 @@ import {
   siteName,
   type DocumentSeoInput,
 } from '../../lib/seo-document';
+import { normalizeForumPost } from '../../domain/forum-posts-state';
 import type { ForumPost, PublicProfile, Route } from '../../types';
 
 export type SeoHeadProps = {
@@ -31,7 +32,8 @@ export function SeoHead({
   publicProfile,
 }: SeoHeadProps) {
   useEffect(() => {
-    const post = detailPostId ? posts.find((p) => p.id === detailPostId) : undefined;
+    const rawPost = detailPostId ? posts.find((p) => p.id === detailPostId) : undefined;
+    const post = rawPost ? normalizeForumPost(rawPost) : undefined;
     const pathFull =
       typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/';
     const pathOnly = pathFull.split('?')[0] || '/';

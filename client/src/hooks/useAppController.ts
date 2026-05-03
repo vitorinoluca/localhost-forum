@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, apiRequest, type AuthUser } from '../api';
 import { applyReactionToggle } from '../domain/reactions';
-import { mergePostIntoList } from '../domain/forum-posts-state';
+import { mergePostIntoList, normalizeForumPosts } from '../domain/forum-posts-state';
 import { getRoute, parsePostDetailUuid } from '../lib/route';
 import { usePostDetailSync } from './usePostDetailSync';
 import type { AuthPayload, ForumPost, PublicProfile, Route } from '../types';
@@ -176,7 +176,7 @@ export function useAppController() {
           undefined,
           { trackLoading: !silent },
         );
-        setPosts(data.posts);
+        setPosts(normalizeForumPosts(data.posts));
       } catch (error) {
         if (error instanceof ApiError) setMessage(error.message);
       } finally {
@@ -484,7 +484,9 @@ export function useAppController() {
     await runAuthAction(async () => {
       await trackedApiRequest('/api/auth/logout', { method: 'POST' });
       setUser(null);
-      setPosts((current) => current.map((p) => ({ ...p, myReaction: null })));
+      setPosts((current) =>
+        (Array.isArray(current) ? current : []).map((p) => ({ ...p, myReaction: null })),
+      );
       navigate('/');
     });
   }
@@ -536,7 +538,9 @@ export function useAppController() {
       if (!post) return;
       const removing = post.myReaction === reaction;
       setPosts((current) =>
-        current.map((p) => (p.id !== postId ? p : applyReactionToggle(p, reaction))),
+        (Array.isArray(current) ? current : []).map((p) =>
+          p.id !== postId ? p : applyReactionToggle(p, reaction),
+        ),
       );
       if (removing) {
         await trackedApiRequest(`/api/forum/posts/${postId}/reaction`, { method: 'DELETE' }, {
@@ -570,7 +574,9 @@ export function useAppController() {
         undefined,
         { trackLoading: false },
       );
-      setPosts((prev) => mergePostIntoList(prev, data.post));
+      const refreshed = data.post;
+      if (!refreshed || typeof refreshed !== 'object') return false;
+      setPosts((prev) => mergePostIntoList(prev, refreshed as ForumPost));
       return true;
     } catch (error) {
       if (error instanceof ApiError) setMessage(error.message);
@@ -587,7 +593,7 @@ export function useAppController() {
       setMessage('');
       try {
         await trackedApiRequest(`/api/forum/posts/${postId}`, { method: 'DELETE' });
-        setPosts((current) => current.filter((p) => p.id !== postId));
+        setPosts((current) => (Array.isArray(current) ? current : []).filter((p) => p.id !== postId));
         if (route === `/posts/${postId}`) {
           navigate('/');
         }

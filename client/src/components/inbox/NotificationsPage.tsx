@@ -24,7 +24,7 @@ export function NotificationsPage({
     });
     void apiRequest<{ notifications: InboxNotification[] }>('/api/notifications')
       .then((data) => {
-        if (!cancelled) setItems(data.notifications);
+        if (!cancelled) setItems(Array.isArray(data.notifications) ? data.notifications : []);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

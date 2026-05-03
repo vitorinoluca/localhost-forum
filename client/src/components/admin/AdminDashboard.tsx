@@ -56,7 +56,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
     setPostsLoading(true);
     try {
       const data = await apiRequest<{ posts: RecentPostRow[] }>('/api/admin/posts/recent?limit=40');
-      setPosts(data.posts);
+      setPosts(Array.isArray(data.posts) ? data.posts : []);
     } catch (e) {
       setMessage(e instanceof ApiError ? e.message : 'No se pudieron cargar las publicaciones.');
     } finally {
@@ -79,7 +79,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
       if (userQuery.trim()) q.set('q', userQuery.trim());
       const path = `/api/admin/users${q.toString() ? `?${q}` : ''}`;
       const data = await apiRequest<{ users: AdminUserRow[] }>(path);
-      setUsers(data.users);
+      setUsers(Array.isArray(data.users) ? data.users : []);
     } catch (e) {
       setMessage(e instanceof ApiError ? e.message : 'No se pudo cargar la lista de usuarios.');
     } finally {
@@ -99,7 +99,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (route: Route) => v
           if (userQuery.trim()) q.set('q', userQuery.trim());
           const path = `/api/admin/users${q.toString() ? `?${q}` : ''}`;
           const data = await apiRequest<{ users: AdminUserRow[] }>(path);
-          if (!cancelled) setUsers(data.users);
+          if (!cancelled) setUsers(Array.isArray(data.users) ? data.users : []);
         } catch (e) {
           if (!cancelled) {
             setMessage(e instanceof ApiError ? e.message : 'No se pudo cargar la lista de usuarios.');

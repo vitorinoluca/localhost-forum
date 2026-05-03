@@ -24,7 +24,9 @@ export function usePostDetailSync(
           { trackLoading: false },
         );
         if (cancelled) return;
-        setPosts((prev) => mergePostIntoList(prev, data.post));
+        const fetched = data.post;
+        if (!fetched || typeof fetched !== 'object') return;
+        setPosts((prev) => mergePostIntoList(prev, fetched as ForumPost));
       } catch {
         return;
       }
