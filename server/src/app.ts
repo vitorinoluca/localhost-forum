@@ -79,6 +79,8 @@ const adSenseImg = [
   'https://tpc.googlesyndication.com',
   'https://www.google.com',
   'https://www.gstatic.com',
+  'https://ep1.adtrafficquality.google',
+  'https://ep2.adtrafficquality.google',
 ];
 const adSenseFrame = [
   'https://googleads.g.doubleclick.net',
