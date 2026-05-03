@@ -17,8 +17,29 @@ type ApiResponse<T> = T & {
   devCode?: string;
 };
 
-/** Vacío = mismo origen que la página (producción con Express sirviendo el SPA). Desarrollo: proxy /api en Vite. */
-const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? '';
+function vitePublicBase(): string {
+  const raw = import.meta.env.BASE_URL ?? '/';
+  if (raw === '/') return '';
+  return raw.endsWith('/') ? raw.slice(0, -1) : raw;
+}
+
+/**
+ * Vacío = mismo origen. También acepta URL absoluta (https://api…) o prefijo de ruta (/algo).
+ * Valores como un hash suelto quedan ignorados (evita URLs relativas tipo `abc123/api/...` → 404).
+ */
+function normalizeViteApiBase(): string {
+  const raw = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/')) return raw;
+  console.warn(
+    '[api] VITE_API_URL debe estar vacío, ser https://… o empezar con /. Ignorando:',
+    raw,
+  );
+  return '';
+}
+
+const apiBaseNormalized = normalizeViteApiBase();
 
 export class ApiError extends Error {
   statusCode: number;
@@ -31,12 +52,21 @@ export class ApiError extends Error {
   }
 }
 
-export function apiUrl(path: string) {
+export function apiUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
 
-  return `${apiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+  const pathname = path.startsWith('/') ? path : `/${path}`;
+
+  if (/^https?:\/\//i.test(apiBaseNormalized)) {
+    return `${apiBaseNormalized.replace(/\/$/, '')}${pathname}`;
+  }
+
+  const pathPrefix = apiBaseNormalized.startsWith('/') ? apiBaseNormalized.replace(/\/$/, '') : '';
+  const pub = vitePublicBase();
+  const joined = `${pub}${pathPrefix}${pathname}`.replace(/\/{2,}/g, '/');
+  return joined.startsWith('/') ? joined : `/${joined}`;
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}) {

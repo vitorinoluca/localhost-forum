@@ -185,7 +185,12 @@ export function useAppController() {
         );
         setPosts(normalizeForumPosts(data.posts));
       } catch (error) {
-        if (error instanceof ApiError) setMessage(error.message);
+        if (error instanceof ApiError) {
+          setMessage(error.message);
+        } else if (!silent) {
+          setMessage('No se pudo cargar el foro. Revisá la URL del API (VITE_API_URL) y tu conexión.');
+          console.error(error);
+        }
       } finally {
         if (!silent) setForumLoading(false);
       }
