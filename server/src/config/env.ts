@@ -26,7 +26,6 @@ const rawEnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   LISTEN_HOST: z.string().optional(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(32).default(1),
-  /** Vacío en prod: se usa RENDER_EXTERNAL_URL si existe; en dev típico Vite http://localhost:5174 */
   CLIENT_ORIGIN: z.preprocess(
     (val) => {
       if (val === undefined || val === null) return undefined;
@@ -35,7 +34,6 @@ const rawEnvSchema = z.object({
     },
     z.string().url().optional(),
   ),
-  /** Orígenes extra permitidos (coma-separados), por ejemplo otro dominio del mismo proyecto */
   CLIENT_ORIGINS: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   SESSION_SECRET: z.string().min(32),

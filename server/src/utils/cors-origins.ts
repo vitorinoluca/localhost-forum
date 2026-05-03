@@ -7,7 +7,6 @@ export function normalizeBrowserOrigin(origin: string): string {
   }
 }
 
-/** Origen principal + lista opcional separada por comas (sin variantes www automáticas). */
 export function buildAllowedOriginSet(primary: string, extrasRaw: string | undefined): Set<string> {
   const set = new Set<string>();
   const add = (o: string) => {

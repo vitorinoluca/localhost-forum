@@ -101,7 +101,6 @@ app.use(
       },
     },
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    /** GIS / cuentas Google usan postMessage; COOP estricto rompe el flujo en algunos navegadores */
     crossOriginOpenerPolicy: { policy: 'unsafe-none' },
     strictTransportSecurity:
       env.NODE_ENV === 'production'

@@ -65,7 +65,6 @@ export function NavBar({
           {siteDisplayName}
         </button>
 
-        {/* Escritorio */}
         <nav aria-label='Principal' className='hidden items-center gap-6 md:flex lg:gap-8'>
           {showExploreLink ? (
             <button className={linkMuted} onClick={() => navigate('/')} type='button'>
@@ -124,7 +123,6 @@ export function NavBar({
           )}
         </nav>
 
-        {/* Móvil: menú */}
         <div className='flex shrink-0 items-center md:hidden'>
           <button
             aria-expanded={menuOpen}
@@ -139,7 +137,6 @@ export function NavBar({
         </div>
       </div>
 
-      {/* Panel móvil */}
       {menuOpen ? (
         <div
           className='border-t border-white/10 bg-neutral-950/98 px-4 py-4 shadow-[0_16px_40px_rgba(0,0,0,0.45)] md:hidden'

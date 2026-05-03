@@ -23,10 +23,6 @@ function vitePublicBase(): string {
   return raw.endsWith('/') ? raw.slice(0, -1) : raw;
 }
 
-/**
- * Vacío = mismo origen. También acepta URL absoluta (https://api…) o prefijo de ruta (/algo).
- * Valores como un hash suelto quedan ignorados (evita URLs relativas tipo `abc123/api/...` → 404).
- */
 function normalizeViteApiBase(): string {
   const raw = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
   if (!raw) return '';

@@ -43,6 +43,16 @@ function verificationMailParts(code: string) {
   return { subject, text, html };
 }
 
+function brevoErrorMessage(raw: string): string {
+  try {
+    const j = JSON.parse(raw) as { message?: string };
+    if (j.message) return j.message;
+  } catch {
+    void 0;
+  }
+  return raw;
+}
+
 async function sendViaBrevo(to: string, subject: string, html: string, text: string) {
   const sender = parseMailFrom(env.MAIL_FROM);
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -63,13 +73,7 @@ async function sendViaBrevo(to: string, subject: string, html: string, text: str
 
   if (!res.ok) {
     const raw = await res.text();
-    let msg = raw;
-    try {
-      const j = JSON.parse(raw) as { message?: string };
-      if (j.message) msg = j.message;
-    } catch {
-      /* cuerpo no JSON */
-    }
+    const msg = brevoErrorMessage(raw);
     throw new Error(msg || `Brevo HTTP ${res.status}`);
   }
 }

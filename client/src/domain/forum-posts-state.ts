@@ -1,6 +1,5 @@
 import type { ForumPost } from '../types';
 
-/** Evita `.length` sobre undefined si la API o un proxy devuelve datos incompletos. */
 export function normalizeForumPost(post: ForumPost): ForumPost {
   return {
     ...post,

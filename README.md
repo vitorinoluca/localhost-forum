@@ -1,69 +1,28 @@
 # localhost:forum
 
-Foro web con cuentas por correo (verificación con código de seis dígitos), inicio de sesión con Google opcional, publicaciones con texto e imágenes almacenadas en Supabase Storage, comentarios, reacciones y notificaciones dentro del sitio.
+Foro web pensado para conversación abierta: hilos con texto e imágenes, comentarios anidados y reacciones, perfiles públicos y bandeja de notificaciones dentro del sitio. Las cuentas se crean con correo electrónico y verificación por código de un solo uso; el inicio de sesión con Google es opcional y se valida en el servidor.
 
-## Tecnologías
+Los adjuntos se guardan en **Supabase Storage**; en PostgreSQL solo viven URLs y metadatos para moderación y listados rápidos. Un rol **superadmin** puede ver analíticas agregadas y herramientas de administración sin exponer datos sensibles en el cliente.
 
-- **Frontend:** React, TypeScript, Vite, Tailwind  
-- **Backend:** Node.js, Express, TypeScript, PostgreSQL  
-- **Archivos:** Supabase Storage; en la base solo quedan URLs y metadatos  
-- **Autenticación:** Argon2 para contraseñas, sesión en cookie `httpOnly` con JWT firmado en servidor, Google OAuth comprobado en backend  
+## Qué resuelve
 
-Monorepo con workspaces de npm: carpetas `client/` y `server/`.
+- Participación sin fricción: publicar, comentar y reaccionar en una sola SPA con rutas claras y SEO básico (metadatos, sitemap y documentos legales configurables por variables).
+- Confianza en la sesión: cookie `httpOnly`, JWT firmado en backend y hashing de contraseñas con Argon2.
+- Despliegue flexible: el cliente puede vivir en el mismo host que el API (Express sirviendo `client/dist`) o en otro origen con CORS explícito.
 
-## Requisitos
+## Arquitectura
 
-Node.js 20 o superior. Base PostgreSQL con extensiones `pgcrypto` y `citext` (en Supabase ya vienen).
+Monorepo **npm workspaces** (`client/`, `server/`). El frontend es **React + TypeScript + Vite + Tailwind**; el backend es **Express + TypeScript** sobre **PostgreSQL**. La configuración de entorno versionada está en `.env.example` (en desarrollo suele dividirse entre `client/.env` y `server/.env`).
 
-## Puesta en marcha
+## Scripts útiles
 
-```bash
-npm install
-```
-
-Creá **`client/.env`** y **`server/.env`** copiando las secciones correspondientes desde **`.env.example`** en la raíz del repo (única plantilla versionada). En desarrollo Vite solo lee `client/.env` y el API `server/.env`; el archivo de la raíz es referencia y sirve también para pegar variables en Render u otros hosts.
-
-Editar `server/.env` como mínimo:
-
-- `DATABASE_URL`, `DATABASE_SSL` si hace falta  
-- `SESSION_SECRET`: cadena larga y aleatoria (no subirla al repo)  
-- `CLIENT_ORIGIN`: opcional; si lo omitís en Render se usa `RENDER_EXTERNAL_URL`. En desarrollo con Vite en otro puerto suele ser `http://localhost:5174` (valor por defecto si no hay URL pública).  
-- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`  
-- Bucket de Storage configurado y con políticas acordes a tu uso  
-- Correo de verificación: en **Render free** el SMTP directo está bloqueado. Usá **Brevo** (API HTTPS): cuenta gratuita en brevo.com → SMTP & API → clave API → en **Senders** verificá tu Gmail como remitente → `BREVO_API_KEY` y **`MAIL_FROM`** con ese mismo correo (ej. `Mi foro <tu@gmail.com>`). Opcional: **Resend** si tenés dominio verificado. SMTP solo en local o hosts que permitan el puerto.
-
-La _service role_ de Supabase solo en el servidor; nunca en variables `VITE_*` ni en el código del cliente.
-
-**Google (opcional):** en Google Cloud Console, cliente OAuth tipo aplicación web. El mismo ID en `GOOGLE_CLIENT_ID` (servidor) y `VITE_GOOGLE_CLIENT_ID` (cliente). Orígenes autorizados: tu URL local y la de producción.
-
-```bash
-npm run db:migrate
-npm run dev
-```
-
-Por defecto el front escucha en el puerto **5174** y el API en **4000**; Vite proxifica `/api` a `http://127.0.0.1:4000`.
-
-Si el front y el API comparten host (Express sirviendo `client/dist`), dejá **`VITE_API_URL` vacío** para que `fetch('/api/...')` sea mismo origen (sin CORS en la práctica). Si el cliente vive en otro dominio, definí `VITE_API_URL` con la base del API y **`CLIENT_ORIGIN`** / **`CLIENT_ORIGINS`** con los orígenes del navegador permitidos (lista simple, sin regex).
-
-Las rutas públicas listadas para SEO (`robots.txt` / sitemap estático en build) están en `server/src/utils/sitemap-constants.ts` y en `client/vite-plugins/sitemap-constants.ts`; si cambiás rutas, conviene tocar ambos para que sigan iguales.
-
-## Scripts
-
-| Comando | Uso |
+| Comando | Rol |
 |--------|-----|
-| `npm run dev` | Cliente y servidor en paralelo |
-| `npm run build` | Compila cliente y servidor |
-| `npm run start` | Arranca solo el servidor compilado (después del build) |
-| `npm run lint` / `npm run typecheck` | Revisión estática |
-| `npm run db:migrate` | Aplica migraciones SQL |
-| `npm run db:wipe -- --confirm` | Borra datos de aplicación y el bucket de Storage (en producción exige `WIPE_ALLOW_PRODUCTION=yes`) |
+| `npm run dev` | Cliente y API en paralelo |
+| `npm run build` | Build de ambos paquetes |
+| `npm run start` | Solo servidor compilado |
+| `npm run lint` / `npm run typecheck` | Calidad estática |
+| `npm run db:migrate` | Migraciones SQL |
+| `npm run db:wipe -- --confirm` | Borrado de datos de aplicación (producción solo con `WIPE_ALLOW_PRODUCTION=yes`) |
 
-Las variables opcionales están comentadas en **`.env.example`** en la raíz.
-
-## Despliegue
-
-En la raíz del repo, `.npmrc` define `production=false` para que `npm install` en CI no salte las `devDependencies` (sin eso el build falla en TypeScript/Vite).
-
-Para entornos tipo Render con `NODE_ENV=production`, conviene explícitamente `npm ci --include=dev` en el comando de build o la variable `NPM_CONFIG_PRODUCTION=false`.
-
-El archivo `render.yaml` del repo describe un sitio estático de ejemplo; un **Web Service Node** con API + SPA suele usar `npm run build` y `npm start`; sin `CLIENT_ORIGIN`, Render inyecta `RENDER_EXTERNAL_URL` y el servidor la usa para CORS y cookies coherentes con la URL pública.
+El archivo `render.yaml` describe un ejemplo de sitio estático para el cliente; un servicio Node único que ejecute `npm run build` y `npm start` sirve la SPA y el API bajo la misma URL pública.

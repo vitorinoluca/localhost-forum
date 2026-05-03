@@ -1,4 +1,3 @@
-# Ejemplo: solo el build estático del cliente. Para API + SPA en un solo host usá un Web Service Node y build en la raíz (npm run build && npm start).
 services:
   - type: web
     name: frontend
