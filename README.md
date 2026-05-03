@@ -19,9 +19,9 @@ Node.js 20 o superior. Base PostgreSQL con extensiones `pgcrypto` y `citext` (en
 
 ```bash
 npm install
-cp server/.env.example server/.env
-cp client/.env.example client/.env
 ```
+
+Creá **`client/.env`** y **`server/.env`** copiando las secciones correspondientes desde **`.env.example`** en la raíz del repo (única plantilla versionada). En desarrollo Vite solo lee `client/.env` y el API `server/.env`; el archivo de la raíz es referencia y sirve también para pegar variables en Render u otros hosts.
 
 Editar `server/.env` como mínimo:
 
@@ -30,6 +30,7 @@ Editar `server/.env` como mínimo:
 - `CLIENT_ORIGIN`: URL base del sitio en el navegador (en desarrollo suele ser `http://localhost:5174`)  
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`  
 - Bucket de Storage configurado y con políticas acordes a tu uso  
+- Correo de verificación: en hosted gratis tipo Render, SMTP saliente suele estar bloqueado; configurá **`RESEND_API_KEY`** y **`MAIL_FROM`** (listados en `.env.example`). SMTP opcional solo donde la red permita los puertos habituales.
 
 La _service role_ de Supabase solo en el servidor; nunca en variables `VITE_*` ni en el código del cliente.
 
@@ -57,7 +58,7 @@ Las rutas públicas listadas para SEO (`robots.txt` / sitemap estático en build
 | `npm run db:migrate` | Aplica migraciones SQL |
 | `npm run db:wipe -- --confirm` | Borra datos de aplicación y el bucket de Storage (en producción exige `WIPE_ALLOW_PRODUCTION=yes`) |
 
-Variables adicionales documentadas en `server/.env.example` y `client/.env.example`.
+Las variables opcionales están comentadas en **`.env.example`** en la raíz.
 
 ## Despliegue
 

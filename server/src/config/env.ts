@@ -32,11 +32,12 @@ const rawEnvSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   SESSION_COOKIE_NAME: z.string().default('my_app_session'),
   SESSION_COOKIE_SAME_SITE: z.enum(['lax', 'none']).optional(),
+  RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  MAIL_FROM: z.string().email().default('no-reply@my-app.local'),
+  MAIL_FROM: z.string().min(1).default('onboarding@resend.dev'),
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_STORAGE_BUCKET: z.string().min(1),
@@ -53,6 +54,7 @@ const raw = rawEnvSchema.parse(process.env);
 
 export const env = {
   ...raw,
+  RESEND_API_KEY: raw.RESEND_API_KEY?.trim() || undefined,
   AUTH_LOGIN_LOG: parseEnvBoolean(process.env.AUTH_LOGIN_LOG, true),
   DATABASE_SSL: parseEnvBoolean(process.env.DATABASE_SSL, false),
   DATABASE_SSL_REJECT_UNAUTHORIZED: parseOptionalEnvBoolean(process.env.DATABASE_SSL_REJECT_UNAUTHORIZED),
