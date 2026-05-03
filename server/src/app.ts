@@ -94,7 +94,9 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
-app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+if (env.HTTP_ACCESS_LOG) {
+  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+}
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/forum', forumRouter);

@@ -13,6 +13,7 @@ import { clearSessionCookie, createSession } from '../services/session.js';
 import { createVerificationCode, hashSecret, safeEqualHash } from '../services/tokens.js';
 import { toPublicUser } from '../services/public-user.js';
 import type { AuthenticatedRequest } from '../types/auth.js';
+import { authLoginLog } from '../utils/auth-login-log.js';
 
 const authRouter = Router();
 const pendingRegistrationCookie = 'my_app_registration';
@@ -401,9 +402,12 @@ authRouter.post('/login', loginLimiter, async (request, response) => {
   const parsed = loginSchema.safeParse(request.body);
 
   if (!parsed.success) {
+    authLoginLog('login:body_invalido', request);
     response.status(400).json({ message: 'Credenciales invalidas.' });
     return;
   }
+
+  const emailMasked = maskEmail(parsed.data.email);
 
   const userResult = await pool.query<UserRow>('select * from users where email = $1 limit 1', [
     parsed.data.email,
@@ -411,21 +415,25 @@ authRouter.post('/login', loginLimiter, async (request, response) => {
   const user = userResult.rows[0];
 
   if (!user) {
+    authLoginLog('login:usuario_no_encontrado', request, { email: emailMasked });
     response.status(401).json({ message: 'Credenciales invalidas.' });
     return;
   }
 
   if (user.banned_at) {
+    authLoginLog('login:cuenta_suspendida', request, { email: emailMasked, userId: user.id });
     response.status(403).json({ message: 'Tu cuenta fue suspendida por un administrador.' });
     return;
   }
 
   if (user.locked_until && user.locked_until > new Date()) {
+    authLoginLog('login:cuenta_bloqueada_temporal', request, { email: emailMasked, userId: user.id });
     response.status(423).json({ message: 'Cuenta bloqueada temporalmente. Intenta mas tarde.' });
     return;
   }
 
   if (!user.password_hash) {
+    authLoginLog('login:solo_google', request, { email: emailMasked, userId: user.id });
     response.status(401).json({
       message: 'Esta cuenta usa Google. Usa el boton Continuar con Google.',
     });
@@ -449,6 +457,12 @@ authRouter.post('/login', loginLimiter, async (request, response) => {
       [attempts, shouldLock, lockMinutes, user.id],
     );
 
+    authLoginLog('login:clave_incorrecta', request, {
+      email: emailMasked,
+      userId: user.id,
+      intentos: attempts,
+      bloqueada: shouldLock ? 'si' : 'no',
+    });
     response.status(401).json({ message: 'Credenciales invalidas.' });
     return;
   }
@@ -459,6 +473,7 @@ authRouter.post('/login', loginLimiter, async (request, response) => {
   );
 
   if (!user.email_verified_at) {
+    authLoginLog('login:falta_verificar_email', request, { email: emailMasked, userId: user.id });
     setPendingRegistrationCookie(response, user.id);
     response.status(403).json({
       message: 'Debes verificar tu email antes de iniciar sesion.',
@@ -474,11 +489,13 @@ authRouter.post('/login', loginLimiter, async (request, response) => {
     response,
   });
 
+  authLoginLog('login:ok_email', request, { email: emailMasked, userId: user.id });
   response.json({ message: 'Sesion iniciada.', user: toPublicUser(user) });
 });
 
 authRouter.post('/google', loginLimiter, async (request, response) => {
   if (!env.GOOGLE_CLIENT_ID) {
+    authLoginLog('google:no_configurado', request);
     response.status(503).json({ message: 'Inicio de sesion con Google no esta configurado.' });
     return;
   }
@@ -486,6 +503,7 @@ authRouter.post('/google', loginLimiter, async (request, response) => {
   const parsed = googleCredentialSchema.safeParse(request.body);
 
   if (!parsed.success) {
+    authLoginLog('google:credencial_invalida', request);
     response.status(400).json({ message: 'Credencial de Google invalida.' });
     return;
   }
@@ -495,6 +513,9 @@ authRouter.post('/google', loginLimiter, async (request, response) => {
     const upsert = await upsertUserFromGoogle(profile);
 
     if (!upsert.ok) {
+      authLoginLog('google:email_conflicto_google', request, {
+        email: maskEmail(profile.email),
+      });
       response.status(409).json({
         message: 'Ese email ya esta vinculado a otra cuenta de Google.',
       });
@@ -504,11 +525,19 @@ authRouter.post('/google', loginLimiter, async (request, response) => {
     const user = upsert.user;
 
     if (user.banned_at) {
+      authLoginLog('google:cuenta_suspendida', request, {
+        email: maskEmail(user.email),
+        userId: user.id,
+      });
       response.status(403).json({ message: 'Tu cuenta fue suspendida por un administrador.' });
       return;
     }
 
     if (user.locked_until && user.locked_until > new Date()) {
+      authLoginLog('google:cuenta_bloqueada_temporal', request, {
+        email: maskEmail(user.email),
+        userId: user.id,
+      });
       response.status(423).json({ message: 'Cuenta bloqueada temporalmente. Intenta mas tarde.' });
       return;
     }
@@ -526,6 +555,7 @@ authRouter.post('/google', loginLimiter, async (request, response) => {
       response,
     });
 
+    authLoginLog('google:ok', request, { email: maskEmail(user.email), userId: user.id });
     response.json({ message: 'Sesion iniciada.', user: toPublicUser(user) });
   } catch (error) {
     const pgCode =
@@ -537,6 +567,11 @@ authRouter.post('/google', loginLimiter, async (request, response) => {
     if (env.NODE_ENV !== 'production') {
       console.error('[auth/google]', error);
     }
+
+    authLoginLog('google:error', request, {
+      codigo: pgCode || undefined,
+      mensaje: detail.slice(0, 200),
+    });
 
     if (
       pgCode === '42703' ||
