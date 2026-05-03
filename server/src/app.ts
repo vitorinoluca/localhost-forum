@@ -2,7 +2,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import express, { type ErrorRequestHandler } from 'express';
 import helmet from 'helmet';
-import morgan from 'morgan';
 import { env } from './config/env.js';
 import { checkDatabaseConnection } from './db/pool.js';
 import { authRouter } from './routes/auth.js';
@@ -94,9 +93,6 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
-if (env.HTTP_ACCESS_LOG) {
-  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-}
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/forum', forumRouter);

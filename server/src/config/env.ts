@@ -56,8 +56,6 @@ const raw = rawEnvSchema.parse(process.env);
 
 export const env = {
   ...raw,
-  /** Log de cada request HTTP (morgan). En Render: HTTP_ACCESS_LOG=false para silenciar. */
-  HTTP_ACCESS_LOG: parseEnvBoolean(process.env.HTTP_ACCESS_LOG, true),
   /** Log de intentos de login (email/Google): AUTH_LOGIN_LOG=false para silenciar. */
   AUTH_LOGIN_LOG: parseEnvBoolean(process.env.AUTH_LOGIN_LOG, true),
   DATABASE_SSL: parseEnvBoolean(process.env.DATABASE_SSL, false),
