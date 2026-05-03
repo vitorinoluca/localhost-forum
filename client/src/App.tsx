@@ -61,7 +61,7 @@ export default function App() {
         {showTopAdRow ? (
           <aside aria-label='Publicidad' className='border-b border-white/5 bg-neutral-950/90'>
             <div className='mx-auto max-w-7xl px-6 py-3'>
-              <AdSenseSlot format='horizontal' slot={topAdSlot} />
+              <AdSenseSlot slot={topAdSlot} />
             </div>
           </aside>
         ) : null}

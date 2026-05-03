@@ -14,6 +14,7 @@ function placeholderMinHeightClass(format: string | undefined): string {
       return 'min-h-[280px] md:min-h-[360px]';
     case 'rectangle':
       return 'min-h-[250px]';
+    case 'auto':
     case 'horizontal':
     default:
       return 'min-h-[90px] sm:min-h-[100px] md:min-h-[110px]';
@@ -21,7 +22,7 @@ function placeholderMinHeightClass(format: string | undefined): string {
 }
 
 export function AdLayoutPlaceholder({
-  format = 'horizontal',
+  format = 'auto',
   className = '',
 }: {
   format?: string;

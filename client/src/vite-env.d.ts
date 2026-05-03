@@ -17,6 +17,7 @@ interface ImportMetaEnv {
   readonly VITE_SITE_AUTHOR?: string;
   readonly VITE_AD_LAYOUT_PREVIEW?: string;
   readonly VITE_GOOGLE_ADSENSE_CLIENT?: string;
+  readonly VITE_GOOGLE_ADSENSE_SLOT?: string;
   readonly VITE_GOOGLE_ADSENSE_SLOT_TOP?: string;
   readonly VITE_GOOGLE_ADSENSE_SLOT_FEED?: string;
   readonly VITE_GOOGLE_ADSENSE_SLOT_ARTICLE?: string;

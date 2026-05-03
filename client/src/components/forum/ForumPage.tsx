@@ -128,7 +128,7 @@ export function ForumPage({
                     key={`ad-feed-${post.id}`}
                     className='break-inside-avoid mb-6 [column-span:all] flex min-h-[120px] justify-center border-y border-white/5 bg-neutral-950/60 py-8'
                   >
-                    <AdSenseSlot format='horizontal' slot={feedAdSlot} />
+                    <AdSenseSlot slot={feedAdSlot} />
                   </div>,
                 );
               }
@@ -675,7 +675,7 @@ export function PostDetailView({
 
       {showArticleAd ? (
         <aside className='mt-12 flex min-h-[120px] justify-center border-t border-white/5 pt-8' aria-label='Publicidad'>
-          <AdSenseSlot format='horizontal' slot={articleAdSlot} />
+          <AdSenseSlot slot={articleAdSlot} />
         </aside>
       ) : null}
     </article>

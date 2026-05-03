@@ -129,7 +129,7 @@ export function PublicProfileView({
 
           {showProfileAd ? (
             <div className='flex min-h-[100px] justify-center border-t border-white/5 pt-8'>
-              <AdSenseSlot format='horizontal' slot={profileAdSlot} />
+              <AdSenseSlot slot={profileAdSlot} />
             </div>
           ) : null}
         </div>

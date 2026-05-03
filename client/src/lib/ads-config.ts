@@ -19,7 +19,9 @@ export function getAdSlot(key: AdSlotKey): string | undefined {
     profile: import.meta.env.VITE_GOOGLE_ADSENSE_SLOT_PROFILE,
   } as const;
   const raw = map[key];
-  return typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : undefined;
+  if (typeof raw === 'string' && raw.trim() !== '') return raw.trim();
+  const fallback = import.meta.env.VITE_GOOGLE_ADSENSE_SLOT?.trim();
+  return fallback || undefined;
 }
 
 export function shouldShowAdsOnRoute(route: Route): boolean {
