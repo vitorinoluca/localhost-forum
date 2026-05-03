@@ -84,6 +84,9 @@ const adSenseFrame = [
   'https://googleads.g.doubleclick.net',
   'https://tpc.googlesyndication.com',
   'https://www.google.com',
+  'https://pagead2.googlesyndication.com',
+  'https://ep1.adtrafficquality.google',
+  'https://ep2.adtrafficquality.google',
 ];
 const adSenseScript = [
   'https://pagead2.googlesyndication.com',
