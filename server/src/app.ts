@@ -85,6 +85,12 @@ const adSenseFrame = [
   'https://tpc.googlesyndication.com',
   'https://www.google.com',
 ];
+const adSenseScript = [
+  'https://pagead2.googlesyndication.com',
+  'https://www.googletagservices.com',
+  'https://ep1.adtrafficquality.google',
+  'https://ep2.adtrafficquality.google',
+];
 const adSenseConnect = [
   'https://pagead2.googlesyndication.com',
   'https://googleads.g.doubleclick.net',
@@ -109,8 +115,7 @@ app.use(
           ...previousScript,
           'https://accounts.google.com',
           'https://apis.google.com',
-          'https://pagead2.googlesyndication.com',
-          'https://www.googletagservices.com',
+          ...adSenseScript,
         ],
         'style-src': [...previousStyle, 'https://accounts.google.com'],
         'frame-src': ["'self'", 'https://accounts.google.com', ...adSenseFrame],
