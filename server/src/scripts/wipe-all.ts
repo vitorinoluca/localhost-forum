@@ -89,7 +89,6 @@ async function wipeDatabase(): Promise<void> {
       forum_post_attachments,
       forum_posts,
       email_verification_codes,
-      user_sessions,
       users
     restart identity cascade
   `);

@@ -584,10 +584,7 @@ authRouter.get('/me', requireAuth, (request: AuthenticatedRequest, response) => 
   response.json({ user: request.auth?.user });
 });
 
-authRouter.post('/logout', requireAuth, async (request: AuthenticatedRequest, response) => {
-  await pool.query('update user_sessions set revoked_at = now() where id = $1', [
-    request.auth?.sessionId,
-  ]);
+authRouter.post('/logout', requireAuth, async (_request: AuthenticatedRequest, response) => {
   clearSessionCookie(response);
   response.json({ message: 'Sesion cerrada.' });
 });

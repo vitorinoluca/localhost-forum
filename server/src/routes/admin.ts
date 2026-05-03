@@ -67,9 +67,6 @@ adminRouter.post('/users/:userId/ban', async (request: AuthenticatedRequest, res
     `update users set banned_at = now(), ban_reason = $2, updated_at = now() where id = $1`,
     [idParse.data, reason ?? null],
   );
-  await pool.query(`update user_sessions set revoked_at = now() where user_id = $1 and revoked_at is null`, [
-    idParse.data,
-  ]);
 
   response.json({ message: 'Usuario suspendido.' });
 });

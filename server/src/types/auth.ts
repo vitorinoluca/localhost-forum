@@ -13,7 +13,6 @@ export type PublicUser = {
 
 export type AuthenticatedRequest = Request & {
   auth?: {
-    sessionId: string;
     user: PublicUser;
   };
 };

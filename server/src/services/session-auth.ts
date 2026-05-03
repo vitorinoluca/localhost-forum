@@ -1,12 +1,15 @@
+import { jwtVerify } from 'jose';
+import { env } from '../config/env.js';
 import { pool } from '../db/pool.js';
-import { hashSecret } from './tokens.js';
+import { JWT_AUDIENCE, JWT_ISSUER } from './jwt-auth-config.js';
 import { toPublicUser, type DbUserPublicRow } from './public-user.js';
 
-type SessionJoinRow = DbUserPublicRow & { session_id: string };
+function secretKey() {
+  return new TextEncoder().encode(env.SESSION_SECRET);
+}
 
-const SESSION_QUERY = `
+const USER_FOR_SESSION_QUERY = `
       select
-        s.id as session_id,
         u.id,
         u.email,
         u.name,
@@ -15,23 +18,35 @@ const SESSION_QUERY = `
         u.bio,
         u.avatar_url,
         u.role
-      from user_sessions s
-      join users u on u.id = s.user_id
-      where s.token_hash = $1
-        and s.revoked_at is null
-        and s.expires_at > now()
+      from users u
+      where u.id = $1::uuid
         and u.email_verified_at is not null
         and u.banned_at is null
       limit 1
     `;
 
 export async function loadSessionFromToken(token: string | undefined) {
-  if (typeof token !== 'string') return null;
-  const session = await pool.query<SessionJoinRow>(SESSION_QUERY, [hashSecret(token)]);
+  if (typeof token !== 'string' || !token.trim()) return null;
+
+  let userId: string;
+  try {
+    const { payload } = await jwtVerify(token, secretKey(), {
+      algorithms: ['HS256'],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    });
+    const sub = payload.sub;
+    if (typeof sub !== 'string') return null;
+    userId = sub;
+  } catch {
+    return null;
+  }
+
+  const session = await pool.query<DbUserPublicRow>(USER_FOR_SESSION_QUERY, [userId]);
   const row = session.rows[0];
   if (!row) return null;
+
   return {
-    sessionId: row.session_id,
     user: toPublicUser(row),
   };
 }

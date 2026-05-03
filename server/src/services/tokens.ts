@@ -5,10 +5,6 @@ export function createVerificationCode() {
   return crypto.randomInt(100_000, 1_000_000).toString();
 }
 
-export function createSessionToken() {
-  return crypto.randomBytes(32).toString('base64url');
-}
-
 export function hashSecret(value: string) {
   return crypto.createHmac('sha256', env.SESSION_SECRET).update(value).digest('hex');
 }
