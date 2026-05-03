@@ -8,6 +8,7 @@ import { ForumPage, PostDetailView } from './components/forum/ForumPage';
 import { NotificationsPage } from './components/inbox/NotificationsPage';
 import { ContactPage, PrivacyPage, TermsPage } from './components/legal/LegalPages';
 import { NavBar } from './components/layout/NavBar';
+import { NotFoundPage } from './components/layout/NotFoundPage';
 import { SkipToContent } from './components/layout/SkipToContent';
 import { SiteFooter } from './components/layout/SiteFooter';
 import { ProfileEditView, PublicProfileView } from './components/profile/ProfileViews';
@@ -70,6 +71,8 @@ export default function App() {
         {app.route === '/privacy' ? <PrivacyPage navigate={app.navigate} /> : null}
 
         {app.route === '/contact' ? <ContactPage navigate={app.navigate} /> : null}
+
+        {app.route === '/404' ? <NotFoundPage navigate={app.navigate} /> : null}
 
         {app.route === '/admin' && app.user?.role === 'superadmin' ? (
         <AdminDashboard onNavigate={app.navigate} />

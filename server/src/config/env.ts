@@ -26,8 +26,17 @@ const rawEnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   LISTEN_HOST: z.string().optional(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(32).default(1),
-  CLIENT_ORIGIN: z.string().url().default('http://localhost:5174'),
-  CLIENT_ORIGIN_REGEX: z.string().optional(),
+  /** Vacío en prod: se usa RENDER_EXTERNAL_URL si existe; en dev típico Vite http://localhost:5174 */
+  CLIENT_ORIGIN: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null) return undefined;
+      const s = String(val).trim();
+      return s === '' ? undefined : s;
+    },
+    z.string().url().optional(),
+  ),
+  /** Orígenes extra permitidos (coma-separados), por ejemplo otro dominio del mismo proyecto */
+  CLIENT_ORIGINS: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   SESSION_SECRET: z.string().min(32),
   SESSION_COOKIE_NAME: z.string().default('my_app_session'),
@@ -53,8 +62,25 @@ function parseGoogleClientId(): string | undefined {
 
 const raw = rawEnvSchema.parse(process.env);
 
+function resolveClientOrigin(explicit: string | undefined): string {
+  if (explicit?.trim()) {
+    return explicit.trim();
+  }
+  const renderUrl = process.env.RENDER_EXTERNAL_URL?.trim();
+  if (renderUrl) {
+    try {
+      return new URL(renderUrl).origin;
+    } catch {
+      return renderUrl.replace(/\/$/, '');
+    }
+  }
+  return 'http://localhost:5174';
+}
+
 export const env = {
   ...raw,
+  CLIENT_ORIGIN: resolveClientOrigin(raw.CLIENT_ORIGIN),
+  CLIENT_ORIGINS: raw.CLIENT_ORIGINS?.trim() || undefined,
   BREVO_API_KEY: raw.BREVO_API_KEY?.trim() || undefined,
   RESEND_API_KEY: raw.RESEND_API_KEY?.trim() || undefined,
   AUTH_LOGIN_LOG: parseEnvBoolean(process.env.AUTH_LOGIN_LOG, true),

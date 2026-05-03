@@ -69,6 +69,13 @@ export function useAppController() {
   }, [applyRoute]);
 
   useEffect(() => {
+    if (route !== '/404') return;
+    const pathRaw = window.location.pathname.replace(/\/$/, '') || '/';
+    if (pathRaw === '/404') return;
+    window.history.replaceState({}, '', '/404');
+  }, [route]);
+
+  useEffect(() => {
     const path = window.location.pathname.replace(/\/$/, '') || '/';
     if (path === '/app') {
       window.history.replaceState({}, '', '/');

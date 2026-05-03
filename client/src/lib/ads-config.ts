@@ -31,7 +31,8 @@ export function shouldShowAdsOnRoute(route: Route): boolean {
     route === '/notifications' ||
     route === '/terms' ||
     route === '/privacy' ||
-    route === '/contact'
+    route === '/contact' ||
+    route === '/404'
   ) {
     return false;
   }

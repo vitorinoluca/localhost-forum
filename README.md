@@ -27,7 +27,7 @@ Editar `server/.env` como mínimo:
 
 - `DATABASE_URL`, `DATABASE_SSL` si hace falta  
 - `SESSION_SECRET`: cadena larga y aleatoria (no subirla al repo)  
-- `CLIENT_ORIGIN`: URL base del sitio en el navegador (en desarrollo suele ser `http://localhost:5174`)  
+- `CLIENT_ORIGIN`: opcional; si lo omitís en Render se usa `RENDER_EXTERNAL_URL`. En desarrollo con Vite en otro puerto suele ser `http://localhost:5174` (valor por defecto si no hay URL pública).  
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`  
 - Bucket de Storage configurado y con políticas acordes a tu uso  
 - Correo de verificación: en **Render free** el SMTP directo está bloqueado. Usá **Brevo** (API HTTPS): cuenta gratuita en brevo.com → SMTP & API → clave API → en **Senders** verificá tu Gmail como remitente → `BREVO_API_KEY` y **`MAIL_FROM`** con ese mismo correo (ej. `Mi foro <tu@gmail.com>`). Opcional: **Resend** si tenés dominio verificado. SMTP solo en local o hosts que permitan el puerto.
@@ -43,7 +43,7 @@ npm run dev
 
 Por defecto el front escucha en el puerto **5174** y el API en **4000**; Vite proxifica `/api` a `http://127.0.0.1:4000`.
 
-Si en producción el front y el API están en el mismo host (por ejemplo Express sirviendo `client/dist`), dejá `VITE_API_URL` vacío en el build del cliente para que las peticiones sean al mismo origen. Si están en dominios distintos, definí `VITE_API_URL` con la URL base del API y revisá CORS (`CLIENT_ORIGIN`, `CLIENT_ORIGINS`, `CLIENT_ORIGIN_REGEX`).
+Si el front y el API comparten host (Express sirviendo `client/dist`), dejá **`VITE_API_URL` vacío** para que `fetch('/api/...')` sea mismo origen (sin CORS en la práctica). Si el cliente vive en otro dominio, definí `VITE_API_URL` con la base del API y **`CLIENT_ORIGIN`** / **`CLIENT_ORIGINS`** con los orígenes del navegador permitidos (lista simple, sin regex).
 
 Las rutas públicas listadas para SEO (`robots.txt` / sitemap estático en build) están en `server/src/utils/sitemap-constants.ts` y en `client/vite-plugins/sitemap-constants.ts`; si cambiás rutas, conviene tocar ambos para que sigan iguales.
 
@@ -66,4 +66,4 @@ En la raíz del repo, `.npmrc` define `production=false` para que `npm install` 
 
 Para entornos tipo Render con `NODE_ENV=production`, conviene explícitamente `npm ci --include=dev` en el comando de build o la variable `NPM_CONFIG_PRODUCTION=false`.
 
-El archivo `render.yaml` del repo describe un sitio estático de ejemplo; un despliegue con API y SPA en un solo servicio Node suele usar `npm run build` en la raíz y `npm start`, con `CLIENT_ORIGIN` apuntando a la URL pública del servicio.
+El archivo `render.yaml` del repo describe un sitio estático de ejemplo; un **Web Service Node** con API + SPA suele usar `npm run build` y `npm start`; sin `CLIENT_ORIGIN`, Render inyecta `RENDER_EXTERNAL_URL` y el servidor la usa para CORS y cookies coherentes con la URL pública.

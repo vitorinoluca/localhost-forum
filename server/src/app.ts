@@ -22,24 +22,12 @@ export const app = express();
 
 app.disable('x-powered-by');
 
-const allowedOrigins = buildAllowedOriginSet(env.CLIENT_ORIGIN, process.env.CLIENT_ORIGINS);
+const allowedOrigins = buildAllowedOriginSet(env.CLIENT_ORIGIN, env.CLIENT_ORIGINS);
 
 if (env.NODE_ENV === 'production') {
   console.info(
     `[cors] Origenes permitidos (${allowedOrigins.size}): ${[...allowedOrigins].join(', ')}`,
   );
-}
-
-const originRegexRaw = env.CLIENT_ORIGIN_REGEX?.trim();
-let originRegex: RegExp | null = null;
-if (originRegexRaw) {
-  try {
-    originRegex = new RegExp(originRegexRaw);
-  } catch {
-    throw new Error(
-      `CLIENT_ORIGIN_REGEX no es una expresion regular valida: ${originRegexRaw}`,
-    );
-  }
 }
 
 function isAllowedOrigin(origin: string) {
@@ -48,12 +36,8 @@ function isAllowedOrigin(origin: string) {
     return true;
   }
 
-  if (originRegex?.test(normalized) || originRegex?.test(origin.trim())) {
-    return true;
-  }
-
   if (env.NODE_ENV !== 'production') {
-    return /^http:\/\/(localhost|127\.0\.0\.1):517\d$/.test(normalized);
+    return /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(normalized);
   }
 
   return false;

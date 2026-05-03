@@ -10,7 +10,8 @@ export type KnownRoute =
   | '/notifications'
   | '/terms'
   | '/privacy'
-  | '/contact';
+  | '/contact'
+  | '/404';
 export type Route = KnownRoute | `/posts/${string}` | `/users/${string}`;
 
 export type AuthPayload = {

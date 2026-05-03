@@ -47,12 +47,16 @@ export function SeoHead({
     let ogImageUrl: string | undefined;
     let ogImageAlt: string | undefined;
 
-    const noIndexPaths = ['/login', '/register', '/verify-email', '/profile/edit', '/notifications'];
+    const noIndexPaths = ['/login', '/register', '/verify-email', '/profile/edit', '/notifications', '/404'];
     if (noIndexPaths.includes(pathOnly) || pathOnly.startsWith('/admin')) {
       robots = 'noindex,nofollow';
     }
 
-    if (route === '/terms') {
+    if (route === '/404') {
+      title = `Página no encontrada · ${siteName}`;
+      description = 'La página solicitada no existe.';
+      robots = 'noindex,nofollow';
+    } else if (route === '/terms') {
       title = `Términos del servicio · ${siteName}`;
       description = `Condiciones de uso de ${siteName}.`;
     } else if (route === '/privacy') {

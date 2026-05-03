@@ -17,6 +17,7 @@ type ApiResponse<T> = T & {
   devCode?: string;
 };
 
+/** Vacío = mismo origen que la página (producción con Express sirviendo el SPA). Desarrollo: proxy /api en Vite. */
 const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? '';
 
 export class ApiError extends Error {
